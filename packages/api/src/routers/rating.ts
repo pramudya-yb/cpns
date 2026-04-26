@@ -1,0 +1,83 @@
+import { z } from "zod";
+import { eq, and, avg } from "drizzle-orm";
+import { router, protectedProcedure, publicProcedure } from "../index";
+import { db } from "@labas/db";
+import { questionRating, question } from "@labas/db";
+
+export const ratingRouter = router({
+  getQuestionRating: publicProcedure
+    .input(z.object({ questionId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session?.user.id;
+
+      const [avgResult] = await db
+        .select({ avgScore: avg(questionRating.score) })
+        .from(questionRating)
+        .where(eq(questionRating.questionId, input.questionId));
+
+      const avgRating = avgResult?.avgScore ? Math.round(Number(avgResult.avgScore)) : null;
+
+      let myRating: number | null = null;
+      if (userId) {
+        const [row] = await db
+          .select({ score: questionRating.score })
+          .from(questionRating)
+          .where(
+            and(
+              eq(questionRating.questionId, input.questionId),
+              eq(questionRating.userId, userId),
+            ),
+          )
+          .limit(1);
+        myRating = row?.score ?? null;
+      }
+
+      return { avgRating, myRating };
+    }),
+
+  rateQuestion: protectedProcedure
+    .input(
+      z.object({
+        questionId: z.string().uuid(),
+        score: z.number().min(1).max(5),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const existing = await db
+        .select()
+        .from(questionRating)
+        .where(
+          and(
+            eq(questionRating.questionId, input.questionId),
+            eq(questionRating.userId, ctx.session.user.id),
+          ),
+        )
+        .limit(1);
+
+      const existingRating = existing[0];
+      if (existingRating) {
+        await db
+          .update(questionRating)
+          .set({ score: input.score })
+          .where(eq(questionRating.id, existingRating.id));
+      } else {
+        await db.insert(questionRating).values({
+          userId: ctx.session.user.id,
+          questionId: input.questionId,
+          score: input.score,
+        });
+      }
+
+      const [avgResult] = await db
+        .select({ avgScore: avg(questionRating.score) })
+        .from(questionRating)
+        .where(eq(questionRating.questionId, input.questionId));
+
+      await db
+        .update(question)
+        .set({ avgRating: avgResult?.avgScore ? Math.round(Number(avgResult.avgScore)) : null })
+        .where(eq(question.id, input.questionId));
+
+      return { success: true };
+    }),
+});

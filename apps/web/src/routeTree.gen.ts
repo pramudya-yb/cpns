@@ -10,13 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GenerateRouteImport } from './routes/generate'
+import { Route as BuilderRouteImport } from './routes/builder'
+import { Route as BankRouteImport } from './routes/bank'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PackageIdRouteImport } from './routes/package.$id'
+import { Route as BankIdRouteImport } from './routes/bank.$id'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PackagesRoute = PackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -29,44 +39,111 @@ const GenerateRoute = GenerateRouteImport.update({
   path: '/generate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BuilderRoute = BuilderRouteImport.update({
+  id: '/builder',
+  path: '/builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BankRoute = BankRouteImport.update({
+  id: '/bank',
+  path: '/bank',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PackageIdRoute = PackageIdRouteImport.update({
+  id: '/package/$id',
+  path: '/package/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BankIdRoute = BankIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => BankRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bank': typeof BankRouteWithChildren
+  '/builder': typeof BuilderRoute
   '/generate': typeof GenerateRoute
   '/login': typeof LoginRoute
+  '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
+  '/bank/$id': typeof BankIdRoute
+  '/package/$id': typeof PackageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bank': typeof BankRouteWithChildren
+  '/builder': typeof BuilderRoute
   '/generate': typeof GenerateRoute
   '/login': typeof LoginRoute
+  '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
+  '/bank/$id': typeof BankIdRoute
+  '/package/$id': typeof PackageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bank': typeof BankRouteWithChildren
+  '/builder': typeof BuilderRoute
   '/generate': typeof GenerateRoute
   '/login': typeof LoginRoute
+  '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
+  '/bank/$id': typeof BankIdRoute
+  '/package/$id': typeof PackageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/generate' | '/login' | '/settings'
+  fullPaths:
+    | '/'
+    | '/bank'
+    | '/builder'
+    | '/generate'
+    | '/login'
+    | '/packages'
+    | '/settings'
+    | '/bank/$id'
+    | '/package/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/generate' | '/login' | '/settings'
-  id: '__root__' | '/' | '/generate' | '/login' | '/settings'
+  to:
+    | '/'
+    | '/bank'
+    | '/builder'
+    | '/generate'
+    | '/login'
+    | '/packages'
+    | '/settings'
+    | '/bank/$id'
+    | '/package/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/bank'
+    | '/builder'
+    | '/generate'
+    | '/login'
+    | '/packages'
+    | '/settings'
+    | '/bank/$id'
+    | '/package/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BankRoute: typeof BankRouteWithChildren
+  BuilderRoute: typeof BuilderRoute
   GenerateRoute: typeof GenerateRoute
   LoginRoute: typeof LoginRoute
+  PackagesRoute: typeof PackagesRoute
   SettingsRoute: typeof SettingsRoute
+  PackageIdRoute: typeof PackageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,6 +153,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/packages': {
+      id: '/packages'
+      path: '/packages'
+      fullPath: '/packages'
+      preLoaderRoute: typeof PackagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -92,6 +176,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/builder': {
+      id: '/builder'
+      path: '/builder'
+      fullPath: '/builder'
+      preLoaderRoute: typeof BuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bank': {
+      id: '/bank'
+      path: '/bank'
+      fullPath: '/bank'
+      preLoaderRoute: typeof BankRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -99,14 +197,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/package/$id': {
+      id: '/package/$id'
+      path: '/package/$id'
+      fullPath: '/package/$id'
+      preLoaderRoute: typeof PackageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bank/$id': {
+      id: '/bank/$id'
+      path: '/$id'
+      fullPath: '/bank/$id'
+      preLoaderRoute: typeof BankIdRouteImport
+      parentRoute: typeof BankRoute
+    }
   }
 }
 
+interface BankRouteChildren {
+  BankIdRoute: typeof BankIdRoute
+}
+
+const BankRouteChildren: BankRouteChildren = {
+  BankIdRoute: BankIdRoute,
+}
+
+const BankRouteWithChildren = BankRoute._addFileChildren(BankRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BankRoute: BankRouteWithChildren,
+  BuilderRoute: BuilderRoute,
   GenerateRoute: GenerateRoute,
   LoginRoute: LoginRoute,
+  PackagesRoute: PackagesRoute,
   SettingsRoute: SettingsRoute,
+  PackageIdRoute: PackageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

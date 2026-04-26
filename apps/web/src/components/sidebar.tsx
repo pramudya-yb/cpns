@@ -6,6 +6,8 @@ const navItems = [
   { to: "/", label: "Dashboard", icon: "dashboard" },
   { to: "/generate", label: "AI Lab", icon: "auto_awesome" },
   { to: "/bank", label: "Bank Soal", icon: "database" },
+  { to: "/packages", label: "Paket", icon: "folder" },
+  { to: "/builder", label: "Builder", icon: "construction" },
   { to: "/analytics", label: "Analytics", icon: "analytics" },
 ];
 
@@ -111,11 +113,32 @@ export function Sidebar() {
       {/* Floating toggle button (right edge of sidebar) */}
       <button
         onClick={toggle}
-        className="hidden md:flex absolute top-6 z-50 items-center justify-center w-10 h-10 rounded-full bg-[var(--pure-white)] border-2 border-[var(--oat-border)] shadow-md hover:bg-[var(--oat-light)] transition-colors text-[var(--warm-charcoal)] clay-hover"
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        style={{ left: collapsed ? "16px" : "256px" }}
+        style={{ left: collapsed ? "48px" : "240px" }}
+        className="hidden md:flex absolute top-6 z-50 items-center justify-center w-10 h-10 rounded-full bg-[var(--pure-white)] border-2 border-[var(--oat-border)] shadow-md hover:bg-[var(--oat-light)] transition-all duration-300 text-[var(--warm-charcoal)] clay-hover"
       >
-        <span className="material-symbols-outlined text-lg">menu_open</span>
+        <span className="relative inline-flex size-6 shrink-0 items-center justify-center">
+          <span
+            className={`material-symbols-outlined pointer-events-none absolute inset-0 flex items-center justify-center text-[20px] leading-none transition-all duration-300 ease-out select-none ${
+              collapsed
+                ? "opacity-100 scale-100 rotate-0"
+                : "opacity-0 scale-75 -rotate-90"
+            }`}
+            aria-hidden
+          >
+            right_panel_open
+          </span>
+          <span
+            className={`material-symbols-outlined pointer-events-none absolute inset-0 flex items-center justify-center text-[20px] leading-none transition-all duration-300 ease-out select-none ${
+              collapsed
+                ? "opacity-0 scale-75 rotate-90"
+                : "opacity-100 scale-100 rotate-0"
+            }`}
+            aria-hidden
+          >
+            right_panel_close
+          </span>
+        </span>
       </button>
 
       {/* Mobile bottom nav */}

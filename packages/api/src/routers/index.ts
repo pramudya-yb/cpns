@@ -1,6 +1,8 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { aiRouter } from "./ai";
 import { questionRouter } from "./question";
+import { packageRouter } from "./package";
+import { ratingRouter } from "./rating";
 import { settingsRouter } from "./settings";
 
 export const appRouter = router({
@@ -15,6 +17,8 @@ export const appRouter = router({
   }),
   ai: aiRouter,
   question: questionRouter,
+  package: packageRouter,
+  rating: ratingRouter,
   settings: settingsRouter,
 });
 

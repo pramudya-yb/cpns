@@ -6,6 +6,14 @@ import { Button } from "@labas/ui/components/button";
 import { Input } from "@labas/ui/components/input";
 import { Label } from "@labas/ui/components/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@labas/ui/components/select";
 
 export const Route = createFileRoute("/settings")({
   component: RouteComponent,
@@ -51,7 +59,7 @@ function RouteComponent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-7 space-y-8">
-          <Card className="clay-shadow clay-hover bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)]">
+          <Card className="clay-shadow bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)]">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <MaterialIcon name="key" />
@@ -67,19 +75,32 @@ function RouteComponent() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="provider" className="text-[var(--clay-black)]">Provider</Label>
-                  <select
-                    id="provider"
-                    className="flex h-10 w-full rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--pure-white)] px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--clay-black)] focus-visible:ring-offset-2 text-[var(--clay-black)]"
+                  <Select
+                    items={[
+                      { value: "openai", label: "OpenAI" },
+                      { value: "anthropic", label: "Anthropic" },
+                      { value: "google", label: "Google" },
+                      { value: "openrouter", label: "OpenRouter" },
+                      { value: "groq", label: "Groq" },
+                      { value: "custom", label: "Custom" },
+                    ]}
                     value={provider}
-                    onChange={(e) => setProvider(e.target.value)}
+                    onValueChange={(v: string | null) => setProvider(v ?? "openai")}
                   >
-                    <option value="openai">OpenAI</option>
-                    <option value="anthropic">Anthropic</option>
-                    <option value="google">Google</option>
-                    <option value="openrouter">OpenRouter</option>
-                    <option value="groq">Groq</option>
-                    <option value="custom">Custom</option>
-                  </select>
+                    <SelectTrigger id="provider">
+                      <SelectValue placeholder="Pilih provider" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="openai">OpenAI</SelectItem>
+                        <SelectItem value="anthropic">Anthropic</SelectItem>
+                        <SelectItem value="google">Google</SelectItem>
+                        <SelectItem value="openrouter">OpenRouter</SelectItem>
+                        <SelectItem value="groq">Groq</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="model" className="text-[var(--clay-black)]">Model</Label>
@@ -141,7 +162,7 @@ function RouteComponent() {
         </div>
 
         <div className="lg:col-span-5">
-          <Card className="clay-shadow clay-hover bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)] sticky top-8">
+          <Card className="clay-shadow bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)] sticky top-8">
             <CardHeader>
               <CardTitle className="font-headline text-[var(--clay-black)]">Status API Key</CardTitle>
               <CardDescription className="text-[var(--warm-charcoal)]">Informasi penyimpanan key.</CardDescription>

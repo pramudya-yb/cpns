@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useApiKey } from "@/hooks/use-api-key";
 import { Button } from "@labas/ui/components/button";
+import { Input } from "@labas/ui/components/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@labas/ui/components/card";
 import "flag-icons/css/flag-icons.min.css";
 import type { GenerationResult } from "@labas/ai";
@@ -68,6 +69,10 @@ function RouteComponent() {
   const [weaknessAlign, setWeaknessAlign] = useState(75);
   const [result, setResult] = useState<GenerationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saveMode, setSaveMode] = useState<"questions" | "package">("questions");
+  const [packageTitle, setPackageTitle] = useState("");
+  const [packageDesc, setPackageDesc] = useState("");
+  const [isPublicPackage, setIsPublicPackage] = useState(false);
 
   const generate = useMutation({
     ...trpc.ai.generate.mutationOptions(),
@@ -87,6 +92,63 @@ function RouteComponent() {
       alert("Soal berhasil disimpan!");
     },
   });
+
+  const createPackage = useMutation({
+    ...trpc.package.create.mutationOptions(),
+  });
+
+  const addSection = useMutation({
+    ...trpc.package.addSection.mutationOptions(),
+  });
+
+  const addQuestion = useMutation({
+    ...trpc.package.addQuestion.mutationOptions(),
+  });
+
+  const handleSaveAsPackage = async () => {
+    if (!result || !packageTitle) return;
+
+    try {
+      // 1. Create package
+      const pkg = await createPackage.mutateAsync({
+        title: packageTitle,
+        description: packageDesc,
+        examTypeId: examType,
+        isPublic: isPublicPackage,
+        estimatedDurationMin: result.questions.length * 2,
+      });
+
+      // 2. Add section
+      const sec = await addSection.mutateAsync({
+        packageId: pkg.id,
+        sectionTypeId: section,
+        title: `${SECTIONS.find((s) => s.id === section)?.name} Section`,
+        orderIndex: 0,
+      });
+
+      // 3. Save questions and add to section
+      const saved = await saveQuestions.mutateAsync({
+        examTypeId: examType,
+        sectionTypeId: section,
+        questions: result.questions,
+        isPublic: isPublicPackage,
+      });
+
+      for (let i = 0; i < saved.length; i++) {
+        await addQuestion.mutateAsync({
+          sectionId: sec.id,
+          questionId: saved[i].id,
+          orderIndex: i,
+        });
+      }
+
+      alert(`Paket "${packageTitle}" berhasil dibuat!`);
+      setPackageTitle("");
+      setPackageDesc("");
+    } catch (err: any) {
+      alert("Gagal membuat paket: " + err.message);
+    }
+  };
 
   const toggleFormat = (id: string) => {
     setSelectedFormats((prev) =>
@@ -387,23 +449,83 @@ function RouteComponent() {
       {/* Results Section */}
       {result && (
         <div className="mt-16 space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <h2 className="text-2xl font-headline font-bold text-[var(--clay-black)]">Hasil Generate</h2>
-            <Button
-              onClick={() =>
-                saveQuestions.mutate({
-                  examTypeId: examType,
-                  sectionTypeId: section,
-                  questions: result.questions,
-                  isPublic: false,
-                })
-              }
-              disabled={saveQuestions.isPending}
-              className="bg-[var(--matcha-600)] text-[var(--pure-white)] hover:bg-[var(--matcha-800)] clay-hover"
-            >
-              {saveQuestions.isPending ? "Menyimpan..." : "Simpan ke Bank Soal"}
-            </Button>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setSaveMode(saveMode === "questions" ? "package" : "questions")}
+                variant="outline"
+                className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
+              >
+                <MaterialIcon name={saveMode === "package" ? "list" : "folder"} />
+                <span className="ml-2">{saveMode === "package" ? "Simpan Satuan" : "Simpan Paket"}</span>
+              </Button>
+
+              {saveMode === "questions" ? (
+                <Button
+                  onClick={() =>
+                    saveQuestions.mutate({
+                      examTypeId: examType,
+                      sectionTypeId: section,
+                      questions: result.questions,
+                      isPublic: false,
+                    })
+                  }
+                  disabled={saveQuestions.isPending}
+                  className="bg-[var(--matcha-600)] text-[var(--pure-white)] hover:bg-[var(--matcha-800)] clay-hover rounded-[var(--radius-lg)]"
+                >
+                  {saveQuestions.isPending ? "Menyimpan..." : "Simpan ke Bank"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSaveAsPackage}
+                  disabled={createPackage.isPending || !packageTitle}
+                  className="bg-[var(--blueberry-800)] text-[var(--pure-white)] hover:bg-[var(--ube-800)] clay-hover rounded-[var(--radius-lg)]"
+                >
+                  {createPackage.isPending ? "Membuat..." : "Buat Paket"}
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* Package Form */}
+          {saveMode === "package" && (
+            <Card className="clay-shadow bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)]">
+              <CardContent className="p-5 space-y-4">
+                <h3 className="font-headline font-bold text-[var(--clay-black)]">Detail Paket</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-[var(--clay-black)] block mb-1">Judul Paket</label>
+                    <Input
+                      value={packageTitle}
+                      onChange={(e) => setPackageTitle(e.target.value)}
+                      placeholder="e.g. IELTS Reading - Science & Tech"
+                      className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--pure-white)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-[var(--clay-black)] block mb-1">Deskripsi (opsional)</label>
+                    <Input
+                      value={packageDesc}
+                      onChange={(e) => setPackageDesc(e.target.value)}
+                      placeholder="Deskripsi singkat..."
+                      className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--pure-white)]"
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isPublicPackage}
+                    onChange={(e) => setIsPublicPackage(e.target.checked)}
+                    className="w-4 h-4 rounded border-[var(--oat-border)]"
+                  />
+                  <span className="text-sm text-[var(--warm-charcoal)]">Publikasikan ke Bank Soal</span>
+                </label>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="text-sm text-[var(--warm-charcoal)] mb-4 font-mono">
             Model: {result.meta.model} · Tokens: {result.meta.tokensUsed ?? "?"} · Waktu: {result.meta.durationMs}ms
