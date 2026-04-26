@@ -1,0 +1,19 @@
+{
+  "name": "@labas/ai",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./schemas": {
+      "default": "./src/schemas.ts"
+    }
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@labas/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

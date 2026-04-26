@@ -4,8 +4,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import Header from "@/components/header";
+import { Sidebar } from "@/components/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
+import { useSidebar } from "@/hooks/use-sidebar";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
@@ -19,36 +20,34 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   component: RootComponent,
   head: () => ({
     meta: [
-      {
-        title: "labas",
-      },
-      {
-        name: "description",
-        content: "labas is a web application",
-      },
+      { title: "Labas — AI Exam Practice" },
+      { name: "description", content: "AI-powered multi-language test practice platform" },
     ],
     links: [
-      {
-        rel: "icon",
-        href: "/favicon.ico",
-      },
+      { rel: "icon", href: "/favicon.ico" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" },
     ],
   }),
 });
 
 function RootComponent() {
+  const { collapsed } = useSidebar();
+
   return (
     <>
       <HeadContent />
       <ThemeProvider
         attribute="class"
-        defaultTheme="dark"
+        defaultTheme="light"
+        enableSystem
         disableTransitionOnChange
-        storageKey="vite-ui-theme"
+        storageKey="labas-theme"
       >
-        <div className="grid grid-rows-[auto_1fr] h-svh">
-          <Header />
-          <Outlet />
+        <div className="min-h-screen bg-background">
+          <Sidebar />
+          <main className={`min-h-screen transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-64"}`}>
+            <Outlet />
+          </main>
         </div>
         <Toaster richColors />
       </ThemeProvider>
