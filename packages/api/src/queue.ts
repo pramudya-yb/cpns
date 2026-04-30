@@ -155,7 +155,8 @@ export const generationWorker = new Worker(
     };
 
     try {
-      if (input.mode === "agentic") {
+      const selectedMode = input.mode;
+      if (selectedMode === "agentic") {
         await updateProgress(10, "Generating passage...");
       }
 
@@ -166,32 +167,59 @@ export const generationWorker = new Worker(
         approxTokens += Math.ceil(token.length / 4);
       };
 
-      const result =
-        input.mode === "agentic"
-          ? await generateQuestionsAgentic(input, async (p) => {
-              cancelPoll.check();
-              const stepProgress = Math.min(
-                10 + Math.round((p.currentStep / p.steps.length) * 80),
-                90,
-              );
-              const msg = p.steps[p.currentStep]?.message ?? p.steps[p.currentStep]?.step ?? "Processing...";
-              await updateProgress(stepProgress, msg);
-            })
-          : await generateQuestionsQuick(input, {
-              onToken: (token) => {
+      let result;
+      try {
+        result =
+          selectedMode === "agentic"
+            ? await generateQuestionsAgentic(input, async (p) => {
                 cancelPoll.check();
-                countToken(token);
-                // Update progress message with token count every ~500 chars
-                if (approxTokens % 20 === 0) {
-                  job.updateProgress(job.progress ?? 5).catch(() => {});
-                  db
-                    .update(generationJob)
-                    .set({ progressMessage: `Generating... (~${approxTokens} tokens)` })
-                    .where(eq(generationJob.id, jobId))
-                    .catch(() => {});
-                }
-              },
-            });
+                const stepProgress = Math.min(
+                  10 + Math.round((p.currentStep / p.steps.length) * 80),
+                  90,
+                );
+                const msg =
+                  p.steps[p.currentStep]?.message ?? p.steps[p.currentStep]?.step ?? "Processing...";
+                await updateProgress(stepProgress, msg);
+              })
+            : await generateQuestionsQuick(input, {
+                onToken: (token) => {
+                  cancelPoll.check();
+                  countToken(token);
+                  // Update progress message with token count every ~500 chars
+                  if (approxTokens % 20 === 0) {
+                    job.updateProgress(job.progress ?? 5).catch(() => {});
+                    db
+                      .update(generationJob)
+                      .set({ progressMessage: `Generating... (~${approxTokens} tokens)` })
+                      .where(eq(generationJob.id, jobId))
+                      .catch(() => {});
+                  }
+                },
+              });
+      } catch (quickErr: any) {
+        const quickErrorMessage = quickErr?.message ?? String(quickErr);
+        const shouldFallbackToAgentic =
+          selectedMode === "quick" &&
+          (/Failed to parse AI response as JSON/i.test(quickErrorMessage) ||
+            /Unterminated string/i.test(quickErrorMessage) ||
+            /Missing 'questions' array/i.test(quickErrorMessage));
+
+        if (!shouldFallbackToAgentic) {
+          throw quickErr;
+        }
+
+        await updateProgress(25, "Quick mode JSON invalid, retrying with agentic mode...");
+        result = await generateQuestionsAgentic(
+          { ...input, mode: "agentic" },
+          async (p) => {
+            cancelPoll.check();
+            const stepProgress = Math.min(25 + Math.round((p.currentStep / p.steps.length) * 65), 90);
+            const msg =
+              p.steps[p.currentStep]?.message ?? p.steps[p.currentStep]?.step ?? "Processing...";
+            await updateProgress(stepProgress, msg);
+          },
+        );
+      }
 
       cancelPoll.check();
       await updateProgress(95, "Saving to bank...");
@@ -246,51 +274,62 @@ export const generationWorker = new Worker(
 
           savedQuestionIds = inserted.map((r) => r.id);
 
-          // Auto-create a package from generated questions
+          // Auto-create a package from generated questions.
+          // Non-fatal: if this fails, generation should still succeed with savedQuestionIds.
           if (savedQuestionIds.length > 0) {
-            const dateStr = new Date().toLocaleDateString("id-ID", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            });
-            const pkgTitle = `AI Generated — ${input.examType} ${input.section} — ${dateStr}`;
+            try {
+              const dateStr = new Date().toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              });
+              const pkgTitle = `AI Generated - ${input.examType} ${input.section} - ${dateStr}`;
 
-            const [pkg] = await db
-              .insert(testPackage)
-              .values({
-                title: pkgTitle,
-                description: `Paket latihan AI-generated dengan ${savedQuestionIds.length} soal ${input.examType} ${input.section}.`,
-                examTypeId: input.examType,
-                creatorUserId: userId,
-                isPublic: false,
-                totalQuestions: savedQuestionIds.length,
-                totalSections: 1,
-                estimatedDurationMin: Math.ceil(savedQuestionIds.length * 1.5),
-              })
-              .returning();
-
-            if (pkg) {
-              generatedPackageId = pkg.id;
-
-              const [sec] = await db
-                .insert(packageSection)
+              const [pkg] = await db
+                .insert(testPackage)
                 .values({
-                  packageId: pkg.id,
-                  sectionTypeId: input.section,
-                  title: `${input.section} Section`,
-                  orderIndex: 0,
+                  title: pkgTitle,
+                  description: `Paket latihan AI-generated dengan ${savedQuestionIds.length} soal ${input.examType} ${input.section}.`,
+                  examTypeId: input.examType,
+                  creatorUserId: userId,
+                  isPublic: false,
+                  totalQuestions: savedQuestionIds.length,
+                  totalSections: 1,
+                  estimatedDurationMin: Math.ceil(savedQuestionIds.length * 1.5),
                 })
                 .returning();
 
-              if (sec) {
-                await db.insert(sectionQuestion).values(
-                  savedQuestionIds.map((qid, idx) => ({
-                    sectionId: sec.id,
-                    questionId: qid,
-                    orderIndex: idx,
-                  })),
-                );
+              if (pkg) {
+                generatedPackageId = pkg.id;
+
+                const [sec] = await db
+                  .insert(packageSection)
+                  .values({
+                    packageId: pkg.id,
+                    sectionTypeId: input.section,
+                    title: `${input.section} Section`,
+                    orderIndex: 0,
+                  })
+                  .returning();
+
+                if (sec) {
+                  await db.insert(sectionQuestion).values(
+                    savedQuestionIds.map((qid, idx) => ({
+                      sectionId: sec.id,
+                      questionId: qid,
+                      orderIndex: idx,
+                    })),
+                  );
+                }
               }
+            } catch (packageErr: any) {
+              // eslint-disable-next-line no-console
+              console.warn("[GENERATION] Failed to auto-create package, but questions were saved.", {
+                error: packageErr?.message ?? String(packageErr),
+                jobId,
+                examType: input.examType,
+                section: input.section,
+              });
             }
           }
         }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@labas/ui/components/button";
@@ -13,7 +13,7 @@ interface AttemptTestViewProps {
   currentSectionIdx: number;
   setCurrentSectionIdx: (idx: number) => void;
   answers: Record<string, string>;
-  onAnswerChange: (questionId: string, sectionResultId: string, value: string) => void;
+  onAnswerChange: (questionId: string, sectionResultId: string | undefined, value: string) => void;
   timeElapsed: number;
   answeredCount: number;
   totalQuestions: number;
@@ -59,6 +59,20 @@ export function AttemptTestView({
   const currentSection = pkg.sections[currentSectionIdx];
   const sectionData = attempt?.sections?.[currentSectionIdx];
   const sectionResultId = sectionData?.sectionResultId;
+
+  // If user picks an answer before attempt.getById finishes, persist once sectionResultId exists
+  const flushKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!sectionResultId || isFinished || !currentSection?.questions?.length) return;
+    const key = `${currentSectionIdx}:${sectionResultId}`;
+    if (flushKeyRef.current === key) return;
+    flushKeyRef.current = key;
+    for (const q of currentSection.questions as any[]) {
+      const v = answers[q.id];
+      if (v) void onAnswerChange(q.id, sectionResultId, v);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- flush once per section when ids align; `answers` read from committing render
+  }, [sectionResultId, currentSectionIdx, isFinished, currentSection?.questions?.length, onAnswerChange]);
 
   if (!currentSection) {
     return (
@@ -205,11 +219,9 @@ export function AttemptTestView({
                         question={q}
                         value={answerValue}
                         onChange={(val) => {
-                          if (sectionResultId) {
-                            onAnswerChange(q.id, sectionResultId, val);
-                          }
+                          onAnswerChange(q.id, sectionResultId, val);
                         }}
-                        disabled={isFinished || !sectionResultId}
+                        disabled={isFinished}
                       />
                     </div>
                   </div>

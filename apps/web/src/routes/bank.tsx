@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
-import { trpc } from "@/utils/trpc";
+import { trpc, queryClient } from "@/utils/trpc";
 import { Input } from "@labas/ui/components/input";
 import { Button } from "@labas/ui/components/button";
 import { Card, CardContent } from "@labas/ui/components/card";
@@ -25,6 +26,15 @@ import { QuestionDetailModal } from "@/components/bank/QuestionDetailModal";
 
 export const Route = createFileRoute("/bank")({
   component: BankComponent,
+  validateSearch: z.object({
+    tab: z.enum(["mine", "public"]).optional(),
+    search: z.string().optional(),
+    examType: z.string().optional(),
+    section: z.string().optional(),
+    format: z.string().optional(),
+    difficulty: z.coerce.number().optional(),
+    page: z.coerce.number().optional(),
+  }).parse,
   beforeLoad: async () => {
     const session = await authClient.getSession();
     if (!session.data) {
@@ -37,16 +47,19 @@ export const Route = createFileRoute("/bank")({
 type Tab = "mine" | "public";
 
 function BankComponent() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { data: session } = authClient.useSession();
   const userId = session?.user.id;
 
-  const [tab, setTab] = useState<Tab>("mine");
-  const [search, setSearch] = useState("");
-  const [examType, setExamType] = useState<string>("");
-  const [section, setSection] = useState<string>("");
-  const [format, setFormat] = useState<string>("");
-  const [difficulty, setDifficulty] = useState<number | undefined>();
-  const [page, setPage] = useState(0);
+  const tab = search.tab ?? "mine";
+  const searchText = search.search ?? "";
+  const examType = search.examType ?? "";
+  const section = search.section ?? "";
+  const format = search.format ?? "";
+  const difficulty = search.difficulty;
+  const page = search.page ?? 1;
+
   const [selectedQuestion, setSelectedQuestion] = useState<any | null>(null);
 
   // Modals
@@ -57,7 +70,7 @@ function BankComponent() {
 
   const query = useQuery(
     trpc.question.list.queryOptions({
-      search: search || undefined,
+      search: searchText || undefined,
       examTypeId: examType || undefined,
       sectionTypeId: section || undefined,
       format: format || undefined,
@@ -66,7 +79,7 @@ function BankComponent() {
         ? { creatorUserId: userId }
         : { isPublic: true }),
       limit,
-      offset: page * limit,
+      offset: (page - 1) * limit,
     }),
   );
 
@@ -97,16 +110,59 @@ function BankComponent() {
     onSuccess: () => query.refetch(),
   });
 
-  const clearFilters = () => {
-    setSearch("");
-    setExamType("");
-    setSection("");
-    setFormat("");
-    setDifficulty(undefined);
-    setPage(0);
+  const setTab = (newTab: Tab) => {
+    navigate({
+      search: {
+        tab: newTab,
+        search: "",
+        examType: "",
+        section: "",
+        format: "",
+        difficulty: undefined,
+        page: 1,
+      },
+    });
   };
 
-  const hasFilters = search || examType || section || format || difficulty !== undefined;
+  const setSearch = (value: string) => {
+    navigate({ search: (prev) => ({ ...prev, search: value, page: 1 }) });
+  };
+
+  const setExamType = (value: string) => {
+    navigate({ search: (prev) => ({ ...prev, examType: value, page: 1 }) });
+  };
+
+  const setSection = (value: string) => {
+    navigate({ search: (prev) => ({ ...prev, section: value, page: 1 }) });
+  };
+
+  const setFormat = (value: string) => {
+    navigate({ search: (prev) => ({ ...prev, format: value, page: 1 }) });
+  };
+
+  const setDifficulty = (value: number | undefined) => {
+    navigate({ search: (prev) => ({ ...prev, difficulty: value, page: 1 }) });
+  };
+
+  const setPage = (newPage: number) => {
+    navigate({ search: (prev) => ({ ...prev, page: newPage }) });
+  };
+
+  const clearFilters = () => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        search: "",
+        examType: "",
+        section: "",
+        format: "",
+        difficulty: undefined,
+        page: 1,
+      }),
+    });
+  };
+
+  const hasFilters = searchText || examType || section || format || difficulty !== undefined;
 
   const autoBundleExamType = examType || null;
   const autoBundleSectionType = section || null;
@@ -135,12 +191,45 @@ function BankComponent() {
     count: number;
     sortOrder: "random" | "difficulty";
   }) => {
-    const allQuestions = await query.refetch();
+    // Auto-bundle needs a full candidate pool, not only current page (12 items).
+    const batchSize = 50;
+    const baseInput = {
+      search: searchText || undefined,
+      examTypeId: examType || undefined,
+      sectionTypeId: section || undefined,
+      format: format || undefined,
+      difficulty,
+      ...(tab === "mine" && userId
+        ? { creatorUserId: userId }
+        : { isPublic: true }),
+      limit: batchSize,
+    };
+
+    const firstPage = await queryClient.fetchQuery(
+      trpc.question.list.queryOptions({
+        ...baseInput,
+        offset: 0,
+      }),
+    );
+
+    const allQuestions = [...(firstPage.questions ?? [])];
+    const totalAvailable = firstPage.total ?? allQuestions.length;
+
+    for (let offset = batchSize; offset < totalAvailable; offset += batchSize) {
+      const pageData = await queryClient.fetchQuery(
+        trpc.question.list.queryOptions({
+          ...baseInput,
+          offset,
+        }),
+      );
+      allQuestions.push(...(pageData.questions ?? []));
+    }
+
     await handleAutoBundle({
       ...data,
       examTypeId: autoBundleExamType ?? "",
       sectionTypeId: autoBundleSectionType ?? "READING",
-      allQuestions: allQuestions.data?.questions ?? [],
+      allQuestions,
     });
     setIsAutoBundleOpen(false);
   };
@@ -159,7 +248,7 @@ function BankComponent() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => { setTab("mine"); setPage(0); }}
+          onClick={() => setTab("mine")}
           className={`px-4 py-2 rounded-[var(--radius-lg)] text-sm font-semibold transition-all ${
             tab === "mine"
               ? "bg-[var(--clay-black)] text-[var(--pure-white)] clay-shadow"
@@ -169,7 +258,7 @@ function BankComponent() {
           Soal Saya
         </button>
         <button
-          onClick={() => { setTab("public"); setPage(0); }}
+          onClick={() => setTab("public")}
           className={`px-4 py-2 rounded-[var(--radius-lg)] text-sm font-semibold transition-all ${
             tab === "public"
               ? "bg-[var(--clay-black)] text-[var(--pure-white)] clay-shadow"
@@ -187,8 +276,8 @@ function BankComponent() {
             <MaterialIcon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--warm-charcoal)]" />
             <Input
               placeholder="Cari soal..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+              value={searchText}
+              onChange={(e) => setSearch(e.target.value)}
               className="pl-10 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--pure-white)] h-11"
             />
           </div>
@@ -207,7 +296,7 @@ function BankComponent() {
         <div className="flex flex-wrap gap-2">
           <Select
             value={examType}
-            onValueChange={(v: string | null) => { setExamType(v ?? ""); setPage(0); }}
+            onValueChange={(v: string | null) => setExamType(v ?? "")}
           >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Semua Ujian" />
@@ -224,7 +313,7 @@ function BankComponent() {
 
           <Select
             value={section}
-            onValueChange={(v: string | null) => { setSection(v ?? ""); setPage(0); }}
+            onValueChange={(v: string | null) => setSection(v ?? "")}
           >
             <SelectTrigger className="w-38">
               <SelectValue placeholder="Semua Section" />
@@ -241,7 +330,7 @@ function BankComponent() {
 
           <Select
             value={format}
-            onValueChange={(v: string | null) => { setFormat(v ?? ""); setPage(0); }}
+            onValueChange={(v: string | null) => setFormat(v ?? "")}
           >
             <SelectTrigger className="w-52">
               <SelectValue placeholder="Semua Format" />
@@ -258,7 +347,7 @@ function BankComponent() {
 
           <Select
             value={difficulty !== undefined ? String(difficulty) : ""}
-            onValueChange={(v: string | null) => { setDifficulty(v ? Number(v) : undefined); setPage(0); }}
+            onValueChange={(v: string | null) => setDifficulty(v ? Number(v) : undefined)}
           >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Semua Level" />
@@ -486,19 +575,19 @@ function BankComponent() {
             <div className="flex items-center justify-center gap-2 mt-10">
               <Button
                 variant="outline"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page <= 1}
                 className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
               >
                 <MaterialIcon name="chevron_left" />
               </Button>
               <span className="text-sm text-[var(--warm-charcoal)] px-4">
-                Halaman {page + 1} dari {totalPages}
+                Halaman {page} dari {totalPages}
               </span>
               <Button
                 variant="outline"
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page >= totalPages}
                 className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
               >
                 <MaterialIcon name="chevron_right" />

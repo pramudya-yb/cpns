@@ -8,11 +8,13 @@ const navItems = [
   { to: "/jobs", label: "Jobs", icon: "schedule" },
   { to: "/bank", label: "Bank Soal", icon: "database" },
   { to: "/packages", label: "Paket", icon: "folder" },
+  { to: "/history", label: "Riwayat", icon: "history" },
   { to: "/builder/combo", label: "Combo", icon: "join_inner" },
   { to: "/analytics", label: "Analytics", icon: "analytics" },
 ];
 
 const bottomItems = [
+  { to: "/me", label: "Profil", icon: "person" },
   { to: "/settings", label: "Settings", icon: "settings" },
 ];
 
@@ -34,9 +36,14 @@ export function Sidebar() {
           }`}
       >
         <div className={`mb-8 ${collapsed ? "px-0 text-center" : "px-4"}`}>
-          <h1 className="text-xl font-extrabold text-[var(--clay-black)] font-headline tracking-tight">
-            {collapsed ? "L" : "Labas"}
-          </h1>
+          <img
+            src="/logo.png"
+            alt="Labas"
+            width={64}
+            height={64}
+            className="mt-2 size-16 object-contain select-none"
+            decoding="async"
+          />
           {!collapsed && (
             <p className="text-xs text-[var(--warm-charcoal)] uppercase tracking-widest font-semibold mt-1">
               Exam Prep Portal
@@ -111,7 +118,7 @@ export function Sidebar() {
         onClick={toggle}
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         style={{ left: collapsed ? "48px" : "240px" }}
-        className="hidden md:flex absolute top-6 z-40 items-center justify-center w-10 h-10 rounded-full bg-[var(--pure-white)] border-2 border-[var(--oat-border)] shadow-md hover:bg-[var(--oat-light)] transition-all duration-300 text-[var(--warm-charcoal)] clay-hover"
+        className="hidden md:flex fixed top-6 z-40 items-center justify-center w-10 h-10 rounded-full bg-[var(--pure-white)] border-2 border-[var(--oat-border)] shadow-md hover:bg-[var(--oat-light)] transition-all duration-300 text-[var(--warm-charcoal)] clay-hover"
       >
         <span className="relative inline-flex size-6 shrink-0 items-center justify-center">
           <span

@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
@@ -6,6 +7,7 @@ import { Button } from "@labas/ui/components/button";
 import { Card, CardContent } from "@labas/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatLabel } from "@/lib/format";
+import { EditPackageModal } from "@/components/package/EditPackageModal";
 
 export const Route = createFileRoute("/package/$id/")({
   component: PackageDetailComponent,
@@ -21,8 +23,17 @@ export const Route = createFileRoute("/package/$id/")({
 function PackageDetailComponent() {
   const { id } = Route.useParams();
   const { data: session } = authClient.useSession();
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const packageQuery = useQuery(trpc.package.getById.queryOptions({ id }));
+
+  const updateMutation = useMutation({
+    ...trpc.package.update.mutationOptions(),
+    onSuccess: () => {
+      packageQuery.refetch();
+      setIsEditOpen(false);
+    },
+  });
 
   const pkg = packageQuery.data;
 
@@ -89,10 +100,14 @@ function PackageDetailComponent() {
         </div>
 
         <div className="flex flex-wrap gap-4 text-sm text-[var(--warm-charcoal)]">
-          <span className="flex items-center gap-1">
+          <Link
+            to="/profile/$userId"
+            params={{ userId: pkg.creatorUserId }}
+            className="flex items-center gap-1 hover:text-[var(--clay-black)] transition-colors"
+          >
             <MaterialIcon name="person" className="text-sm" />
             {pkg.creatorName ?? "Anonim"}
-          </span>
+          </Link>
           <span className="flex items-center gap-1">
             <MaterialIcon name="quiz" className="text-sm" />
             {totalQuestions} soal
@@ -173,9 +188,24 @@ function PackageDetailComponent() {
             <span className="ml-2">Mulai Latihan</span>
           </Button>
         </Link>
+        {pkg.isPublic && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              const url = `${window.location.origin}/package/${id}`;
+              navigator.clipboard.writeText(url);
+              alert("Link paket disalin ke clipboard!");
+            }}
+            className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
+          >
+            <MaterialIcon name="share" />
+            <span className="ml-2">Bagikan</span>
+          </Button>
+        )}
         {isOwner && (
           <Button
             variant="outline"
+            onClick={() => setIsEditOpen(true)}
             className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
           >
             <MaterialIcon name="edit" />
@@ -183,6 +213,22 @@ function PackageDetailComponent() {
           </Button>
         )}
       </div>
+
+      {isEditOpen && pkg && (
+        <EditPackageModal
+          initialTitle={pkg.title}
+          initialDescription={pkg.description}
+          initialIsPublic={pkg.isPublic}
+          onClose={() => setIsEditOpen(false)}
+          onSave={(data) =>
+            updateMutation.mutate({
+              id,
+              ...data,
+            })
+          }
+          isPending={updateMutation.isPending}
+        />
+      )}
     </div>
   );
 }

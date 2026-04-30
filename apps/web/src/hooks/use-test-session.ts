@@ -79,9 +79,12 @@ export function useTestSession(packageId: string) {
   }, [packageId, startMutation]);
 
   const handleAnswerChange = useCallback(
-    async (questionId: string, sectionResultId: string, value: string) => {
+    async (questionId: string, sectionResultId: string | undefined, value: string) => {
       if (!attemptId || isFinished) return;
+      // Always update UI immediately — sectionResultId may load a tick after attempt starts
       setAnswers((prev) => ({ ...prev, [questionId]: value }));
+      if (!sectionResultId) return;
+
       setSubmittingQId(questionId);
 
       // Start timer if first interaction

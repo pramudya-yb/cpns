@@ -98,6 +98,7 @@ export const testPackage = pgTable(
     estimatedDurationMin: integer("estimated_duration_min"),
     usageCount: integer("usage_count").default(0).notNull(),
     avgRating: integer("avg_rating"),
+    isFeatured: boolean("is_featured").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

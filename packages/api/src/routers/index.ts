@@ -4,6 +4,7 @@ import { attemptRouter } from "./attempt";
 import { comboRouter } from "./combo";
 import { questionRouter } from "./question";
 import { packageRouter } from "./package";
+import { profileRouter } from "./profile";
 import { ratingRouter } from "./rating";
 import { settingsRouter } from "./settings";
 import { statsRouter } from "./stats";
@@ -23,6 +24,7 @@ export const appRouter = router({
   combo: comboRouter,
   question: questionRouter,
   package: packageRouter,
+  profile: profileRouter,
   rating: ratingRouter,
   settings: settingsRouter,
   stats: statsRouter,

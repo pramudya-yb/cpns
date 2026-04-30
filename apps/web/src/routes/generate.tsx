@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { queryClient, trpc } from "@/utils/trpc";
-import { useApiKey } from "@/hooks/use-api-key";
+import { useApiKeys } from "@/hooks/use-api-key";
 import { useGenerationJob } from "@/hooks/use-generation-job";
+import { Button } from "@labas/ui/components/button";
 import { Input } from "@labas/ui/components/input";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { TestBlueprintCard } from "@/components/generate/TestBlueprintCard";
@@ -30,7 +31,20 @@ export const Route = createFileRoute("/generate")({
 });
 
 function RouteComponent() {
-  const { storedKey, hasKey } = useApiKey();
+  const { configs, hasConfigs } = useApiKeys();
+
+  const [selectedKeyId, setSelectedKeyId] = useState<string>(
+    configs[0]?.id ?? "",
+  );
+
+  // keep selectedKeyId in sync when configs load
+  useEffect(() => {
+    if (configs.length > 0 && !configs.find((c) => c.id === selectedKeyId)) {
+      setSelectedKeyId(configs[0].id);
+    }
+  }, [configs, selectedKeyId]);
+
+  const selectedConfig = configs.find((c) => c.id === selectedKeyId);
 
   const {
     result,
@@ -90,7 +104,7 @@ function RouteComponent() {
   };
 
   const handleGenerate = () => {
-    if (!hasKey || !storedKey) {
+    if (!hasConfigs || !selectedConfig) {
       setError("API key belum dikonfigurasi. Tambahkan di Settings.");
       return;
     }
@@ -106,10 +120,10 @@ function RouteComponent() {
       questionCount,
       mode,
       apiKeyConfig: {
-        baseUrl: storedKey.baseUrl,
-        apiKey: storedKey.apiKey,
-        model: storedKey.modelName,
-        maxTokens: storedKey.maxTokens ?? 16384,
+        baseUrl: selectedConfig.baseUrl,
+        apiKey: selectedConfig.apiKey,
+        model: selectedConfig.modelName,
+        maxTokens: selectedConfig.maxTokens ?? 16384,
       },
     });
   };
@@ -127,13 +141,43 @@ function RouteComponent() {
         </p>
       </section>
 
-      {!hasKey && (
+      {!hasConfigs && (
         <div className="mb-8 p-4 rounded-[var(--radius-lg)] bg-[var(--badge-blue-bg)] text-[var(--badge-blue-text)] text-sm flex items-center gap-3 border-2 border-[var(--badge-blue-bg)]">
           <MaterialIcon name="warning" />
           <span>API key belum dikonfigurasi.</span>
           <Link to="/settings" className="font-semibold underline">
             Tambahkan di Settings →
           </Link>
+        </div>
+      )}
+
+      {hasConfigs && (
+        <div className="mb-8 p-4 rounded-[var(--radius-lg)] bg-[var(--warm-cream)] border-2 border-[var(--oat-border)]">
+          <label className="text-sm font-medium text-[var(--clay-black)] mb-2 block">
+            Provider / API Key
+          </label>
+          <div className="flex gap-3">
+            <select
+              value={selectedKeyId}
+              onChange={(e) => setSelectedKeyId(e.target.value)}
+              className="flex-1 h-11 px-3 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--pure-white)] text-[var(--clay-black)] text-sm focus:outline-none focus:border-[var(--matcha-400)]"
+            >
+              {configs.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {c.modelName}
+                </option>
+              ))}
+            </select>
+            <Link to="/settings">
+              <Button
+                variant="outline"
+                className="h-11 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
+              >
+                <MaterialIcon name="settings" className="mr-1" />
+                Kelola
+              </Button>
+            </Link>
+          </div>
         </div>
       )}
 
@@ -310,7 +354,7 @@ function RouteComponent() {
           setMode={setMode}
           isGenerating={isGenerating}
           generatePending={generate.isPending}
-          hasKey={hasKey}
+          hasKey={hasConfigs}
           jobProgress={jobQuery.data?.progress ?? 0}
           jobProgressMessage={jobQuery.data?.progressMessage}
           error={error}

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, or, desc, sql, inArray } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
 import { db } from "@labas/db";
 import {
@@ -34,7 +34,13 @@ export const packageRouter = router({
       if (input?.isPublic !== undefined) {
         conditions.push(eq(testPackage.isPublic, input.isPublic));
       } else if (!userId) {
+        // Guests: only public packages
         conditions.push(eq(testPackage.isPublic, true));
+      } else {
+        // Logged-in users: public packages + their own private packages
+        conditions.push(
+          or(eq(testPackage.isPublic, true), eq(testPackage.creatorUserId, userId)),
+        );
       }
 
       const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -79,6 +85,7 @@ export const packageRouter = router({
       z
         .object({
           search: z.string().optional(),
+          examTypeId: z.string().optional(),
           limit: z.number().min(1).max(50).default(20),
           offset: z.number().min(0).default(0),
         })
@@ -88,6 +95,15 @@ export const packageRouter = router({
       const userId = ctx.session.user.id;
       const conditions = [eq(testPackage.creatorUserId, userId)];
 
+      if (input?.search) {
+        conditions.push(
+          sql`LOWER(${testPackage.title}) LIKE LOWER(${"%" + input.search + "%"})`,
+        );
+      }
+      if (input?.examTypeId) {
+        conditions.push(eq(testPackage.examTypeId, input.examTypeId));
+      }
+
       const where = and(...conditions);
 
       const rows = await db
@@ -96,6 +112,7 @@ export const packageRouter = router({
           title: testPackage.title,
           description: testPackage.description,
           examTypeId: testPackage.examTypeId,
+          creatorUserId: testPackage.creatorUserId,
           isPublic: testPackage.isPublic,
           totalQuestions: testPackage.totalQuestions,
           totalSections: testPackage.totalSections,
@@ -447,5 +464,59 @@ export const packageRouter = router({
         .where(eq(testPackage.id, section.packageId));
 
       return { success: true };
+    }),
+
+  featured: publicProcedure
+    .query(async () => {
+      const rows = await db
+        .select({
+          id: testPackage.id,
+          title: testPackage.title,
+          description: testPackage.description,
+          examTypeId: testPackage.examTypeId,
+          isPublic: testPackage.isPublic,
+          totalQuestions: testPackage.totalQuestions,
+          totalSections: testPackage.totalSections,
+          estimatedDurationMin: testPackage.estimatedDurationMin,
+          usageCount: testPackage.usageCount,
+          avgRating: testPackage.avgRating,
+          createdAt: testPackage.createdAt,
+          examTypeName: examType.name,
+        })
+        .from(testPackage)
+        .leftJoin(examType, eq(testPackage.examTypeId, examType.id))
+        .where(
+          and(eq(testPackage.isFeatured, true), eq(testPackage.isPublic, true)),
+        )
+        .orderBy(desc(testPackage.createdAt))
+        .limit(6);
+
+      return rows;
+    }),
+
+  trending: publicProcedure
+    .query(async () => {
+      const rows = await db
+        .select({
+          id: testPackage.id,
+          title: testPackage.title,
+          description: testPackage.description,
+          examTypeId: testPackage.examTypeId,
+          isPublic: testPackage.isPublic,
+          totalQuestions: testPackage.totalQuestions,
+          totalSections: testPackage.totalSections,
+          estimatedDurationMin: testPackage.estimatedDurationMin,
+          usageCount: testPackage.usageCount,
+          avgRating: testPackage.avgRating,
+          createdAt: testPackage.createdAt,
+          examTypeName: examType.name,
+        })
+        .from(testPackage)
+        .leftJoin(examType, eq(testPackage.examTypeId, examType.id))
+        .where(eq(testPackage.isPublic, true))
+        .orderBy(desc(testPackage.usageCount))
+        .limit(6);
+
+      return rows;
     }),
 });

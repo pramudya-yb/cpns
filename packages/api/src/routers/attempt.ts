@@ -10,6 +10,7 @@ import {
   packageSection,
   sectionQuestion,
   question,
+  examType,
 } from "@labas/db";
 
 function normalizeAnswer(format: string, userAnswer: string, correctAnswer: string): boolean {
@@ -447,8 +448,13 @@ export const attemptRouter = router({
           maxScore: testAttempt.maxScore,
           status: testAttempt.status,
           createdAt: testAttempt.createdAt,
+          packageTitle: testPackage.title,
+          packageExamTypeId: testPackage.examTypeId,
+          examTypeName: examType.name,
         })
         .from(testAttempt)
+        .leftJoin(testPackage, eq(testAttempt.packageId, testPackage.id))
+        .leftJoin(examType, eq(testPackage.examTypeId, examType.id))
         .where(where)
         .orderBy(desc(testAttempt.createdAt))
         .limit(input?.limit ?? 20)

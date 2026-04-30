@@ -11,12 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PackagesRouteImport } from './routes/packages'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as GenerateRouteImport } from './routes/generate'
 import { Route as BankRouteImport } from './routes/bank'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 import { Route as PackageIdRouteImport } from './routes/package.$id'
 import { Route as BuilderComboRouteImport } from './routes/builder.combo'
 import { Route as AttemptIdRouteImport } from './routes/attempt.$id'
@@ -33,6 +36,11 @@ const PackagesRoute = PackagesRouteImport.update({
   path: '/packages',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -41,6 +49,11 @@ const LoginRoute = LoginRouteImport.update({
 const JobsRoute = JobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GenerateRoute = GenerateRouteImport.update({
@@ -61,6 +74,11 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PackageIdRoute = PackageIdRouteImport.update({
@@ -94,13 +112,16 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/bank': typeof BankRoute
   '/generate': typeof GenerateRoute
+  '/history': typeof HistoryRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/builder/combo': typeof BuilderComboRoute
   '/package/$id': typeof PackageIdRouteWithChildren
+  '/profile/$userId': typeof ProfileUserIdRoute
   '/package/$id/take': typeof PackageIdTakeRoute
   '/package/$id/': typeof PackageIdIndexRoute
 }
@@ -109,12 +130,15 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/bank': typeof BankRoute
   '/generate': typeof GenerateRoute
+  '/history': typeof HistoryRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/builder/combo': typeof BuilderComboRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
   '/package/$id/take': typeof PackageIdTakeRoute
   '/package/$id': typeof PackageIdIndexRoute
 }
@@ -124,13 +148,16 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/bank': typeof BankRoute
   '/generate': typeof GenerateRoute
+  '/history': typeof HistoryRoute
   '/jobs': typeof JobsRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
   '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/builder/combo': typeof BuilderComboRoute
   '/package/$id': typeof PackageIdRouteWithChildren
+  '/profile/$userId': typeof ProfileUserIdRoute
   '/package/$id/take': typeof PackageIdTakeRoute
   '/package/$id/': typeof PackageIdIndexRoute
 }
@@ -141,13 +168,16 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/bank'
     | '/generate'
+    | '/history'
     | '/jobs'
     | '/login'
+    | '/me'
     | '/packages'
     | '/settings'
     | '/attempt/$id'
     | '/builder/combo'
     | '/package/$id'
+    | '/profile/$userId'
     | '/package/$id/take'
     | '/package/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -156,12 +186,15 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/bank'
     | '/generate'
+    | '/history'
     | '/jobs'
     | '/login'
+    | '/me'
     | '/packages'
     | '/settings'
     | '/attempt/$id'
     | '/builder/combo'
+    | '/profile/$userId'
     | '/package/$id/take'
     | '/package/$id'
   id:
@@ -170,13 +203,16 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/bank'
     | '/generate'
+    | '/history'
     | '/jobs'
     | '/login'
+    | '/me'
     | '/packages'
     | '/settings'
     | '/attempt/$id'
     | '/builder/combo'
     | '/package/$id'
+    | '/profile/$userId'
     | '/package/$id/take'
     | '/package/$id/'
   fileRoutesById: FileRoutesById
@@ -186,13 +222,16 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   BankRoute: typeof BankRoute
   GenerateRoute: typeof GenerateRoute
+  HistoryRoute: typeof HistoryRoute
   JobsRoute: typeof JobsRoute
   LoginRoute: typeof LoginRoute
+  MeRoute: typeof MeRoute
   PackagesRoute: typeof PackagesRoute
   SettingsRoute: typeof SettingsRoute
   AttemptIdRoute: typeof AttemptIdRoute
   BuilderComboRoute: typeof BuilderComboRoute
   PackageIdRoute: typeof PackageIdRouteWithChildren
+  ProfileUserIdRoute: typeof ProfileUserIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PackagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -223,6 +269,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs'
       fullPath: '/jobs'
       preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/generate': {
@@ -251,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$userId': {
+      id: '/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/profile/$userId'
+      preLoaderRoute: typeof ProfileUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/package/$id': {
@@ -310,13 +370,16 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   BankRoute: BankRoute,
   GenerateRoute: GenerateRoute,
+  HistoryRoute: HistoryRoute,
   JobsRoute: JobsRoute,
   LoginRoute: LoginRoute,
+  MeRoute: MeRoute,
   PackagesRoute: PackagesRoute,
   SettingsRoute: SettingsRoute,
   AttemptIdRoute: AttemptIdRoute,
   BuilderComboRoute: BuilderComboRoute,
   PackageIdRoute: PackageIdRouteWithChildren,
+  ProfileUserIdRoute: ProfileUserIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

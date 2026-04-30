@@ -28,9 +28,30 @@ const AUTHOR_VIEW_CHOICES = [
 ];
 
 const radioClass =
-  "flex items-center gap-3 p-3 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--pure-white)] cursor-pointer hover:border-[var(--matcha-300)] transition-colors";
-const radioSelected = "border-[var(--matcha-600)] bg-[#e8f5ed]";
+  "flex items-center gap-3 p-3 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--pure-white)] cursor-pointer hover:border-[var(--matcha-300)] transition-all";
+const radioSelected =
+  "border-[var(--matcha-600)] bg-[#e8f5ed] ring-2 ring-[var(--matcha-600)]/30 shadow-sm";
 const radioDisabled = "opacity-60 cursor-not-allowed";
+
+/** Normalize TF / NG style answers from API or loose model output */
+function normalizeTriStateKey(
+  value: string,
+  choices: readonly { key: string }[],
+): string {
+  const raw = (value ?? "").trim();
+  if (!raw) return "";
+  const u = raw.toUpperCase().replace(/\s+/g, "_");
+  if (choices.some((c) => c.key === u)) return u;
+  const compact = u.replace(/_/g, "");
+  const alias: Record<string, string> = {
+    TRUE: "TRUE",
+    FALSE: "FALSE",
+    NOTGIVEN: "NOT_GIVEN",
+    YES: "YES",
+    NO: "NO",
+  };
+  return alias[compact] ?? u;
+}
 
 export function QuestionInput({
   question,
@@ -81,49 +102,87 @@ export function QuestionInput({
   }
 
   if (format === "true_false_not_given") {
+    const normalizedValue = normalizeTriStateKey(value, TRUE_FALSE_CHOICES);
     return (
       <div className="space-y-2">
-        {TRUE_FALSE_CHOICES.map((c) => (
-          <label
-            key={c.key}
-            className={`${radioClass} ${value === c.key ? radioSelected : ""} ${disabled ? radioDisabled : ""}`}
-          >
-            <input
-              type="radio"
-              name={question.id}
-              value={c.key}
-              checked={value === c.key}
-              onChange={() => onChange(c.key)}
-              disabled={disabled}
-              className="hidden"
-            />
-            <span className="text-sm font-semibold text-[var(--clay-black)]">{c.label}</span>
-          </label>
-        ))}
+        {TRUE_FALSE_CHOICES.map((c) => {
+          const selected = normalizedValue === c.key;
+          return (
+            <label
+              key={c.key}
+              className={`${radioClass} ${selected ? radioSelected : ""} ${disabled ? radioDisabled : ""}`}
+            >
+              <input
+                type="radio"
+                name={question.id}
+                value={c.key}
+                checked={selected}
+                onChange={() => onChange(c.key)}
+                disabled={disabled}
+                className="sr-only"
+              />
+              <span
+                aria-hidden
+                className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
+                  selected
+                    ? "border-[var(--matcha-600)] bg-[var(--matcha-600)]"
+                    : "border-[var(--oat-border)] bg-[var(--pure-white)]"
+                }`}
+              >
+                {selected ? <span className="w-2 h-2 rounded-full bg-[var(--pure-white)]" /> : null}
+              </span>
+              <span
+                className={`text-sm font-semibold ${
+                  selected ? "text-[var(--matcha-800)]" : "text-[var(--clay-black)]"
+                }`}
+              >
+                {c.label}
+              </span>
+            </label>
+          );
+        })}
       </div>
     );
   }
 
   if (format === "author_view") {
+    const normalizedValue = normalizeTriStateKey(value, AUTHOR_VIEW_CHOICES);
     return (
       <div className="space-y-2">
-        {AUTHOR_VIEW_CHOICES.map((c) => (
-          <label
-            key={c.key}
-            className={`${radioClass} ${value === c.key ? radioSelected : ""} ${disabled ? radioDisabled : ""}`}
-          >
-            <input
-              type="radio"
-              name={question.id}
-              value={c.key}
-              checked={value === c.key}
-              onChange={() => onChange(c.key)}
-              disabled={disabled}
-              className="hidden"
-            />
-            <span className="text-sm font-semibold text-[var(--clay-black)]">{c.label}</span>
-          </label>
-        ))}
+        {AUTHOR_VIEW_CHOICES.map((c) => {
+          const selected = normalizedValue === c.key;
+          return (
+            <label
+              key={c.key}
+              className={`${radioClass} ${selected ? radioSelected : ""} ${disabled ? radioDisabled : ""}`}
+            >
+              <input
+                type="radio"
+                name={question.id}
+                value={c.key}
+                checked={selected}
+                onChange={() => onChange(c.key)}
+                disabled={disabled}
+                className="sr-only"
+              />
+              <span
+                aria-hidden
+                className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
+                  selected
+                    ? "border-[var(--matcha-600)] bg-[var(--matcha-600)]"
+                    : "border-[var(--oat-border)] bg-[var(--pure-white)]"
+                }`}
+              >
+                {selected ? <span className="w-2 h-2 rounded-full bg-[var(--pure-white)]" /> : null}
+              </span>
+              <span
+                className={`text-sm font-semibold ${selected ? "text-[var(--matcha-800)]" : "text-[var(--clay-black)]"}`}
+              >
+                {c.label}
+              </span>
+            </label>
+          );
+        })}
       </div>
     );
   }
