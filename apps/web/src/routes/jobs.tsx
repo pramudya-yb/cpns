@@ -157,6 +157,14 @@ function RouteComponent() {
     },
   });
 
+  const retryJob = useMutation({
+    ...trpc.ai.retryJob.mutationOptions(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: trpc.ai.myJobs.queryKey() });
+      await queryClient.invalidateQueries({ queryKey: trpc.ai.getJobStatus.queryKey() });
+    },
+  });
+
   const toggleExpand = (id: string) => {
     setExpandedJobId((prev) => (prev === id ? null : id));
   };
@@ -241,6 +249,19 @@ function RouteComponent() {
                           Batalkan
                         </Button>
                       )}
+                      {(job.status === "failed" || job.status === "cancelled") && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="rounded-[var(--radius-lg)] border-2 border-[var(--matcha-400)] text-xs shrink-0 text-[var(--matcha-800)]"
+                          disabled={retryJob.isPending}
+                          onClick={() => retryJob.mutate({ jobId: job.id })}
+                        >
+                          <MaterialIcon name="refresh" className="text-sm mr-1" />
+                          Retry
+                        </Button>
+                      )}
                       <div className="text-xs text-[var(--warm-charcoal)]">
                         {formatDate(job.createdAt)}
                       </div>
@@ -249,14 +270,14 @@ function RouteComponent() {
 
                   {(job.status === "running" || job.status === "pending") && (
                     <div className="mt-3">
-                      <div className="flex justify-between text-xs text-[var(--warm-charcoal)] mb-1">
-                        <span>{job.progressMessage ?? "Processing..."}</span>
-                        <span>{job.progress}%</span>
+                      <div className="flex justify-between text-xs text-[var(--warm-charcoal)] mb-1.5">
+                        <span className="truncate mr-2">{job.progressMessage ?? "Processing..."}</span>
+                        <span className="shrink-0 font-semibold">{job.progress}%</span>
                       </div>
-                      <div className="w-full h-2 bg-[var(--oat-border)] rounded-full overflow-hidden">
+                      <div className="w-full h-2.5 bg-[var(--oat-light)] rounded-full overflow-hidden border border-[var(--oat-border)]">
                         <div
-                          className="h-full bg-[var(--matcha-600)] transition-all duration-500"
-                          style={{ width: `${job.progress}%` }}
+                          className="h-full bg-[var(--matcha-600)] transition-all duration-500 rounded-full"
+                          style={{ width: `${Math.max(2, job.progress ?? 0)}%` }}
                         />
                       </div>
                     </div>
@@ -284,7 +305,7 @@ function RouteComponent() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="text-sm text-[var(--warm-charcoal)]">
                         {result.questions.length} soal dihasilkan · {result.meta.model}
-                        {result.meta.tokensUsed ? ` · ${result.meta.tokensUsed} tokens` : ""}
+                        {job.tokensUsed ? ` · ${job.tokensUsed} tokens` : ""}
                         {result.meta.durationMs ? ` · ${(result.meta.durationMs / 1000).toFixed(1)}s` : ""}
                       </div>
                       <Button

@@ -513,6 +513,7 @@ export const generationJob = pgTable(
     progressMessage: text("progress_message"),
     logs: jsonb("logs"), // Array of {step, message, timestamp, status}
     resultJson: jsonb("result_json"), // GenerationResult
+    inputJson: jsonb("input_json"), // GenerationInput (stored for retry)
     errorMessage: text("error_message"),
     tokensUsed: integer("tokens_used"),
     durationMs: integer("duration_ms"),

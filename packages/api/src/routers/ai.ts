@@ -109,6 +109,35 @@ export const aiRouter = router({
     };
   }),
 
+  retryJob: protectedProcedure
+    .input(z.object({ jobId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [job] = await db
+        .select()
+        .from(generationJob)
+        .where(eq(generationJob.id, input.jobId))
+        .limit(1);
+
+      if (!job) throw new Error("Job tidak ditemukan");
+      if (job.userId !== ctx.session.user.id) throw new Error("Tidak diizinkan");
+      if (job.status !== "failed" && job.status !== "cancelled") {
+        throw new Error("Hanya job yang gagal atau dibatalkan yang bisa di-retry");
+      }
+
+      if (!job.inputJson || typeof job.inputJson !== "object") {
+        throw new Error("Data input job tidak tersedia untuk retry");
+      }
+
+      const jobInput = job.inputJson as any;
+      // Ensure the parsed input has the apiKeyConfig shape the pipeline expects
+      if (!jobInput.apiKeyConfig?.baseUrl || !jobInput.apiKeyConfig?.apiKey || !jobInput.apiKeyConfig?.model) {
+        throw new Error("Konfigurasi API key tidak valid untuk retry");
+      }
+
+      const newJobId = await enqueueGeneration(ctx.session.user.id, jobInput);
+      return { jobId: newJobId };
+    }),
+
   saveQuestions: protectedProcedure
     .input(
       z.object({

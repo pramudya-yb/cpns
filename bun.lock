@@ -86,6 +86,7 @@
       "name": "@labas/ai",
       "dependencies": {
         "zod": "catalog:",
+        "zod-to-json-schema": "^3.25.2",
       },
       "devDependencies": {
         "@labas/config": "workspace:*",

@@ -188,6 +188,19 @@ export const generationWorker = new Worker(
 
       startHeartbeat();
 
+      const tokenCounter = (token: string) => {
+        cancelPoll.check();
+        countToken(token);
+        if (approxTokens % 20 === 0) {
+          job.updateProgress(job.progress ?? 5).catch(() => {});
+          db
+            .update(generationJob)
+            .set({ progressMessage: `Generating... (~${approxTokens} tokens)` })
+            .where(eq(generationJob.id, jobId))
+            .catch(() => {});
+        }
+      };
+
       let result;
       try {
         result =
@@ -203,21 +216,9 @@ export const generationWorker = new Worker(
                 const status = step?.status === "error" ? "error" : step?.status === "done" ? "done" : "running";
                 await updateProgress(stepProgress, msg);
                 await pushLog(step?.step ?? "unknown", msg, status, step?.output);
-              })
+              }, tokenCounter)
             : await generateQuestionsQuick(input, {
-                onToken: (token) => {
-                  cancelPoll.check();
-                  countToken(token);
-                  // Update progress message with token count every ~500 chars
-                  if (approxTokens % 20 === 0) {
-                    job.updateProgress(job.progress ?? 5).catch(() => {});
-                    db
-                      .update(generationJob)
-                      .set({ progressMessage: `Generating... (~${approxTokens} tokens)` })
-                      .where(eq(generationJob.id, jobId))
-                      .catch(() => {});
-                  }
-                },
+                onToken: tokenCounter,
               });
       } catch (quickErr: any) {
         const quickErrorMessage = quickErr?.message ?? String(quickErr);
@@ -241,6 +242,7 @@ export const generationWorker = new Worker(
               p.steps[p.currentStep]?.message ?? p.steps[p.currentStep]?.step ?? "Processing...";
             await updateProgress(stepProgress, msg);
           },
+          tokenCounter,
         );
       }
 
@@ -435,6 +437,7 @@ export async function enqueueGeneration(
       questionCount: input.questionCount,
       status: "pending",
       progress: 0,
+      inputJson: input as any,
     })
     .returning();
 

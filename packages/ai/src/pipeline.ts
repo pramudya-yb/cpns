@@ -56,6 +56,7 @@ export async function generateQuestionsQuick(
         ],
         temperature: 0.7,
         max_tokens: input.apiKeyConfig.maxTokens,
+        response_format: { type: "json_object" },
       },
       callbacks?.onToken
         ? { onToken: callbacks.onToken }

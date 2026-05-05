@@ -1,5 +1,12 @@
 import { OpenAICompatibleClient } from "./client";
 import { GenerationError } from "./errors";
+import {
+  getQuestionJsonSchemaDescription,
+  getPassageJsonSchemaDescription,
+  getValidationJsonSchemaDescription,
+  getQuestionsArrayJsonSchemaDescription,
+  getSelfValidationJsonSchemaDescription,
+} from "./schema-to-prompt";
 import { questionSchema, type GenerationInput, type GenerationResult } from "./schemas";
 
 interface AgenticStep {
@@ -43,7 +50,9 @@ function parseJsonResponse(content: string): unknown {
 async function step1GeneratePassage(
   client: OpenAICompatibleClient,
   input: GenerationInput,
+  onToken?: (token: string) => void,
 ): Promise<{ passage: string; title: string; tokensUsed: number }> {
+  const schema = getPassageJsonSchemaDescription();
   const prompt = `Generate an authentic, high-quality reading passage for ${input.examType} ${input.section.toLowerCase()} section at difficulty level ${input.difficulty}/5.
 
 Requirements:
@@ -53,21 +62,22 @@ Requirements:
 - The passage should be natural, well-structured, and appropriate for the exam level
 - Length should be suitable for ${input.questionCount} comprehension questions
 
-Return ONLY valid JSON:
-{
-  "title": "Brief title describing the passage topic",
-  "passage": "The full reading passage text..."
-}`;
+Return ONLY valid JSON conforming to this schema:
+${schema}`;
 
-  const result = await client.chatCompletion({
-    model: input.apiKeyConfig.model,
-    messages: [
-      { role: "system", content: getSystemPrompt() },
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: input.apiKeyConfig.maxTokens,
-  });
+  const result = await client.chatCompletion(
+    {
+      model: input.apiKeyConfig.model,
+      messages: [
+        { role: "system", content: getSystemPrompt() },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+      max_tokens: input.apiKeyConfig.maxTokens,
+      response_format: { type: "json_object" },
+    },
+    onToken ? { onToken } : undefined,
+  );
 
   const parsed = parseJsonResponse(result.content) as Record<string, unknown>;
   if (!parsed.passage || typeof parsed.passage !== "string") {
@@ -84,7 +94,9 @@ async function step2ValidatePassage(
   client: OpenAICompatibleClient,
   input: GenerationInput,
   passage: string,
+  onToken?: (token: string) => void,
 ): Promise<{ isValid: boolean; feedback: string; tokensUsed: number }> {
+  const schema = getValidationJsonSchemaDescription();
   const prompt = `Validate this reading passage for a ${input.examType} exam at difficulty ${input.difficulty}/5.
 
 Passage:
@@ -99,22 +111,22 @@ Check:
 4. Topic relevance: ${input.topics.join(", ")}
 5. Natural flow and coherence
 
-Return ONLY valid JSON:
-{
-  "isValid": true/false,
-  "feedback": "Brief assessment. If invalid, explain why.",
-  "score": number from 1-10
-}`;
+Return ONLY valid JSON conforming to this schema:
+${schema}`;
 
-  const result = await client.chatCompletion({
-    model: input.apiKeyConfig.model,
-    messages: [
-      { role: "system", content: getSystemPrompt() },
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.3,
-    max_tokens: input.apiKeyConfig.maxTokens,
-  });
+  const result = await client.chatCompletion(
+    {
+      model: input.apiKeyConfig.model,
+      messages: [
+        { role: "system", content: getSystemPrompt() },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.3,
+      max_tokens: input.apiKeyConfig.maxTokens,
+      response_format: { type: "json_object" },
+    },
+    onToken ? { onToken } : undefined,
+  );
 
   const parsed = parseJsonResponse(result.content) as Record<string, unknown>;
   return {
@@ -128,30 +140,10 @@ async function step3GenerateQuestions(
   client: OpenAICompatibleClient,
   input: GenerationInput,
   passage: string,
+  onToken?: (token: string) => void,
 ): Promise<{ questions: Array<Record<string, unknown>>; tokensUsed: number }> {
-  const formats = input.formats;
-  const formatInstructions = formats
-    .map((f) => {
-      const schemas: Record<string, string> = {
-        multiple_choice: `{"format":"multiple_choice","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["..."]`,
-        true_false_not_given: `{"format":"true_false_not_given","questionText":"...","correctAnswer":"TRUE|FALSE|NOT_GIVEN","explanation":"...","difficulty":${input.difficulty},"skillTags":["..."]`,
-        fill_blank: `{"format":"fill_blank","questionText":"...","correctAnswer":"exact text","explanation":"...","difficulty":${input.difficulty},"skillTags":["..."]`,
-        synonym: `{"format":"synonym","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["vocabulary","synonym"]`,
-        grammar_in_context: `{"format":"grammar_in_context","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["grammar"]`,
-        sentence_completion: `{"format":"sentence_completion","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["..."]`,
-        cloze: `{"format":"cloze","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"serialized mapping","explanation":"...","difficulty":${input.difficulty},"skillTags":["grammar","vocabulary"]`,
-        reference: `{"format":"reference","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["reference","inference"]`,
-        author_view: `{"format":"author_view","questionText":"...","correctAnswer":"YES|NO|NOT_GIVEN","explanation":"...","difficulty":${input.difficulty},"skillTags":["inference","author_view"]`,
-        matching_headings: `{"format":"matching_headings","questionText":"Match each paragraph to a heading:","options":[{"key":"i","text":"..."},...],"correctAnswer":"serialized mapping","explanation":"...","difficulty":${input.difficulty},"skillTags":["main_idea","matching"]`,
-        kanji_reading: `{"format":"kanji_reading","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["kanji","reading"]`,
-        particle_choice: `{"format":"particle_choice","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["grammar","particle"]`,
-        article_case: `{"format":"article_case","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["grammar","article","case"]`,
-        character_reading: `{"format":"character_reading","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["character","reading"]`,
-        sentence_arrangement: `{"format":"sentence_arrangement","questionText":"...","options":[{"key":"A","text":"..."},...],"correctAnswer":"A","explanation":"...","difficulty":${input.difficulty},"skillTags":["reading","sentence_structure"]`,
-      };
-      return schemas[f] || schemas["multiple_choice"];
-    })
-    .join("\n---\n");
+  const questionSchemaDesc = getQuestionJsonSchemaDescription();
+  const wrapperSchema = getQuestionsArrayJsonSchemaDescription();
 
   const prompt = `Using the following passage, generate ${input.questionCount} reading comprehension questions for ${input.examType} exam.
 
@@ -160,8 +152,7 @@ Passage:
 ${passage}
 """
 
-Formats to generate:
-${formatInstructions}
+Formats to generate: ${input.formats.join(", ")}
 
 Rules:
 - Each question must be directly answerable from the passage
@@ -169,24 +160,27 @@ Rules:
 - Questions should test real comprehension, not surface recall
 - For multiple choice: always provide 4 options (A, B, C, D) with one clearly correct answer
 - Options must be plausible distractors
-- an explanation (explanation) - dijelaskan dengan bahasa Indonesia
+- explanation (explanation) - dijelaskan dengan bahasa Indonesia
 
-Return ONLY valid JSON:
-{
-  "questions": [
-    // array of question objects matching the format schemas above
-  ]
-}`;
+Question schema:
+${questionSchemaDesc}
 
-  const result = await client.chatCompletion({
-    model: input.apiKeyConfig.model,
-    messages: [
-      { role: "system", content: getSystemPrompt() },
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: input.apiKeyConfig.maxTokens,
-  });
+Return ONLY valid JSON conforming to this schema:
+${wrapperSchema}`;
+
+  const result = await client.chatCompletion(
+    {
+      model: input.apiKeyConfig.model,
+      messages: [
+        { role: "system", content: getSystemPrompt() },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+      max_tokens: input.apiKeyConfig.maxTokens,
+      response_format: { type: "json_object" },
+    },
+    onToken ? { onToken } : undefined,
+  );
 
   const parsed = parseJsonResponse(result.content) as Record<string, unknown>;
   if (!Array.isArray(parsed.questions)) {
@@ -203,11 +197,13 @@ async function step4SelfValidate(
   input: GenerationInput,
   passage: string,
   questions: Array<Record<string, unknown>>,
+  onToken?: (token: string) => void,
 ): Promise<{ correctedQuestions: Array<Record<string, unknown>>; confidence: number; tokensUsed: number }> {
   const qaPairs = questions
     .map((q, i) => `Q${i + 1}: ${q.questionText}\nA: ${q.correctAnswer}`)
     .join("\n\n");
 
+  const schema = getSelfValidationJsonSchemaDescription();
   const prompt = `You are a strict exam validator. Review these questions against the passage and identify any errors.
 
 Passage:
@@ -223,28 +219,22 @@ For each question, verify:
 2. Are there any ambiguous questions?
 3. Are distractors plausible but clearly wrong?
 
-Return ONLY valid JSON:
-{
-  "overallConfidence": number from 0-100,
-  "issues": [
-    {
-      "questionIndex": 0-based index,
-      "issue": "description of problem",
-      "suggestedFix": "corrected answer or explanation"
-    }
-  ],
-  "needsRevision": true/false
-}`;
+Return ONLY valid JSON conforming to this schema:
+${schema}`;
 
-  const result = await client.chatCompletion({
-    model: input.apiKeyConfig.model,
-    messages: [
-      { role: "system", content: getSystemPrompt() },
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.3,
-    max_tokens: input.apiKeyConfig.maxTokens,
-  });
+  const result = await client.chatCompletion(
+    {
+      model: input.apiKeyConfig.model,
+      messages: [
+        { role: "system", content: getSystemPrompt() },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.3,
+      max_tokens: input.apiKeyConfig.maxTokens,
+      response_format: { type: "json_object" },
+    },
+    onToken ? { onToken } : undefined,
+  );
 
   const parsed = parseJsonResponse(result.content) as Record<string, unknown>;
   const confidence = typeof parsed.overallConfidence === "number" ? parsed.overallConfidence : 75;
@@ -262,9 +252,74 @@ Return ONLY valid JSON:
   return { correctedQuestions: corrected, confidence, tokensUsed: result.usage?.total_tokens ?? 0 };
 }
 
+async function step4RegenerateBadQuestions(
+  client: OpenAICompatibleClient,
+  input: GenerationInput,
+  passage: string,
+  questions: Array<Record<string, unknown>>,
+  issueIndices: number[],
+  onToken?: (token: string) => void,
+): Promise<{ regenerated: Array<Record<string, unknown>>; tokensUsed: number }> {
+  const badQuestions = issueIndices.map((i) => ({
+    index: i,
+    ...questions[i],
+  }));
+
+  const questionSchemaDesc = getQuestionJsonSchemaDescription();
+  const wrapperSchema = getQuestionsArrayJsonSchemaDescription();
+
+  const prompt = `You are an expert exam question writer. The following questions were flagged as incorrect or flawed. Regenerate them to fix the issues while keeping the same format and difficulty.
+
+Passage:
+"""
+${passage}
+"""
+
+Flawed questions (with their original index):
+${JSON.stringify(badQuestions, null, 2)}
+
+Rules:
+- Regenerate ONLY the flawed questions
+- Maintain the same format, difficulty (${input.difficulty}), and exam style (${input.examType})
+- Each question must be directly answerable from the passage
+- explanation (explanation) - dijelaskan dengan bahasa Indonesia
+- Return the same number of questions in the same order as the input
+
+Question schema:
+${questionSchemaDesc}
+
+Return ONLY valid JSON conforming to this schema:
+${wrapperSchema}`;
+
+  const result = await client.chatCompletion(
+    {
+      model: input.apiKeyConfig.model,
+      messages: [
+        { role: "system", content: getSystemPrompt() },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+      max_tokens: input.apiKeyConfig.maxTokens,
+      response_format: { type: "json_object" },
+    },
+    onToken ? { onToken } : undefined,
+  );
+
+  const parsed = parseJsonResponse(result.content) as Record<string, unknown>;
+  if (!Array.isArray(parsed.questions) || parsed.questions.length !== badQuestions.length) {
+    throw new Error("Regeneration did not return the expected number of questions");
+  }
+
+  return {
+    regenerated: parsed.questions as Array<Record<string, unknown>>,
+    tokensUsed: result.usage?.total_tokens ?? 0,
+  };
+}
+
 export async function generateQuestionsAgentic(
   input: GenerationInput,
   onProgress?: (progress: AgenticProgress) => void,
+  onToken?: (token: string) => void,
 ): Promise<GenerationResult> {
   const start = Date.now();
   const client = new OpenAICompatibleClient(
@@ -292,7 +347,7 @@ export async function generateQuestionsAgentic(
   let passage: string;
   let title: string;
   try {
-    const s1 = await step1GeneratePassage(client, input);
+    const s1 = await step1GeneratePassage(client, input, onToken);
     passage = s1.passage;
     title = s1.title;
     accumulatedTokens += s1.tokensUsed;
@@ -311,7 +366,7 @@ export async function generateQuestionsAgentic(
   let isValid: boolean;
   let feedback: string;
   try {
-    const s2 = await step2ValidatePassage(client, input, passage);
+    const s2 = await step2ValidatePassage(client, input, passage, onToken);
     isValid = s2.isValid;
     feedback = s2.feedback;
     accumulatedTokens += s2.tokensUsed;
@@ -331,7 +386,7 @@ export async function generateQuestionsAgentic(
   report(2);
   let rawQuestions: Array<Record<string, unknown>>;
   try {
-    const s3 = await step3GenerateQuestions(client, input, passage);
+    const s3 = await step3GenerateQuestions(client, input, passage, onToken);
     rawQuestions = s3.questions;
     accumulatedTokens += s3.tokensUsed;
     steps[2].status = "done";
@@ -349,12 +404,40 @@ export async function generateQuestionsAgentic(
   let correctedQuestions: Array<Record<string, unknown>>;
   let confidence: number;
   try {
-    const s4 = await step4SelfValidate(client, input, passage, rawQuestions);
+    const s4 = await step4SelfValidate(client, input, passage, rawQuestions, onToken);
     correctedQuestions = s4.correctedQuestions;
     confidence = s4.confidence;
     accumulatedTokens += s4.tokensUsed;
+
+    // If validation found issues and confidence is low, actually regenerate the bad questions
+    const issueIndices = (s4.correctedQuestions as any[])
+      .map((q, i) => (q.explanation?.includes("[Validator note:") ? i : -1))
+      .filter((i) => i !== -1);
+
+    if (issueIndices.length > 0 && confidence < 85) {
+      steps[3].message = `Found ${issueIndices.length} issues. Regenerating...`;
+      report(3);
+      const regen = await step4RegenerateBadQuestions(
+        client,
+        input,
+        passage,
+        rawQuestions,
+        issueIndices,
+        onToken,
+      );
+      accumulatedTokens += regen.tokensUsed;
+
+      // Replace the bad questions with regenerated ones
+      for (let idx = 0; idx < issueIndices.length; idx++) {
+        correctedQuestions[issueIndices[idx]] = regen.regenerated[idx];
+      }
+      confidence = Math.min(100, confidence + 10);
+      steps[3].message = `Regenerated ${issueIndices.length} questions. Confidence: ${confidence}%`;
+    } else {
+      steps[3].message = `Confidence score: ${confidence}%`;
+    }
+
     steps[3].status = "done";
-    steps[3].message = `Confidence score: ${confidence}%`;
     steps[3].output = `Overall Confidence: ${confidence}%\nTotal Questions: ${correctedQuestions.length}`;
   } catch (err: any) {
     steps[3].status = "error";
