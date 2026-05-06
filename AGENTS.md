@@ -145,7 +145,45 @@ bun run build            # Build all packages
 
 ---
 
-## 10. Git & Workflow
+## 10. Backend Conventions (tRPC / Hono)
+
+### Error Handling
+- **Always use English** error messages in tRPC routers.
+- Use helper functions from `packages/api/src/lib/errors.ts`:
+  ```ts
+  import { throwNotFound, throwForbidden, throwBadRequest } from "@labas/api/lib/errors";
+  assertOwnership(row, userId, "Question"); // throws NotFound or Forbidden
+  ```
+- Never throw raw `new Error("...")` in tRPC routers.
+
+### Pagination
+- Use shared schema + helper for all list endpoints:
+  ```ts
+  import { paginationSchema, paginateDefaults } from "@labas/api/lib/pagination";
+  .input(z.object({ search: z.string().optional(), ...paginationSchema?.shape }).optional())
+  const { limit, offset } = paginateDefaults(input);
+  ```
+- Return shape: `{ items: rows, total }` (or domain-specific name like `{ questions: rows, total }` for legacy compatibility).
+
+### Authorization (Ownership)
+- Use `assertOwnership(row, userId, resourceName)` from `packages/api/src/lib/ownership.ts`.
+- Prefer explicit ownership query + assert over embedding `creatorUserId` in `.where()` for mutations that need a clear 404 vs 403.
+
+### Visibility (Public/Private)
+- Use `buildVisibilityCondition(table, userId)` from `packages/api/src/lib/visibility.ts` for list queries.
+- Default behavior: guests see only public; authenticated users see public + their own private.
+
+### Logging
+- Winston logger is available in tRPC context via `ctx.logger`.
+- Use `logger.info()`, `logger.error()`, etc. for business events and errors.
+- Hono HTTP request logging is handled automatically by `hono/logger` in `apps/server/src/index.ts`.
+
+### Router Structure
+- Shared helpers live in `packages/api/src/lib/`.
+- Routers live in `packages/api/src/routers/`.
+- Register new routers in `packages/api/src/routers/index.ts`.
+
+## 11. Git & Workflow
 
 - Do **NOT** run `git commit`, `git push`, `git rebase`, or force-push unless the user explicitly asks for it.
 - Do **NOT** create `README.md` or documentation files unless explicitly requested.
@@ -154,4 +192,4 @@ bun run build            # Build all packages
 
 ---
 
-_Last updated: 2026-05-01_
+_Last updated: 2026-05-06_

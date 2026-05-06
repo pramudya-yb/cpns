@@ -5,6 +5,8 @@ import { generationInputSchema } from "@labas/ai/schemas";
 import { cancelGenerationJob, enqueueGeneration } from "../queue";
 import { db } from "@labas/db";
 import { question, generationJob } from "@labas/db";
+import { paginationSchema, paginateDefaults } from "../lib/pagination";
+import { throwNotFound, throwForbidden, throwBadRequest } from "../lib/errors";
 
 export const aiRouter = router({
   generate: protectedProcedure
@@ -42,13 +44,9 @@ export const aiRouter = router({
     .mutation(async ({ ctx, input }) => {
       const result = await cancelGenerationJob(ctx.session.user.id, input.jobId);
       if (!result.ok) {
-        const msg =
-          result.reason === "not_found"
-            ? "Job tidak ditemukan"
-            : result.reason === "forbidden"
-              ? "Tidak diizinkan"
-              : "Job sudah selesai atau tidak bisa dibatalkan";
-        throw new Error(msg);
+        if (result.reason === "not_found") throwNotFound("Job");
+        if (result.reason === "forbidden") throwForbidden();
+        throwBadRequest("Job already finished or cannot be cancelled");
       }
       return { ok: true as const };
     }),
@@ -56,18 +54,18 @@ export const aiRouter = router({
   myJobs: protectedProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(50).default(20),
-        offset: z.number().min(0).default(0),
+        ...paginationSchema.shape,
       }).optional(),
     )
     .query(async ({ ctx, input }) => {
+      const { limit, offset } = paginateDefaults(input);
       const rows = await db
         .select()
         .from(generationJob)
         .where(eq(generationJob.userId, ctx.session.user.id))
         .orderBy(desc(generationJob.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
       return rows;
     }),
 
@@ -126,20 +124,20 @@ export const aiRouter = router({
         .where(eq(generationJob.id, input.jobId))
         .limit(1);
 
-      if (!job) throw new Error("Job tidak ditemukan");
-      if (job.userId !== ctx.session.user.id) throw new Error("Tidak diizinkan");
+      if (!job) throwNotFound("Job");
+      if (job.userId !== ctx.session.user.id) throwForbidden();
       if (job.status !== "failed" && job.status !== "cancelled") {
-        throw new Error("Hanya job yang gagal atau dibatalkan yang bisa di-retry");
+        throwBadRequest("Only failed or cancelled jobs can be retried");
       }
 
       if (!job.inputJson || typeof job.inputJson !== "object") {
-        throw new Error("Data input job tidak tersedia untuk retry");
+        throwBadRequest("Job input data is not available for retry");
       }
 
       const jobInput = job.inputJson as any;
       // Ensure the parsed input has the apiKeyConfig shape the pipeline expects
       if (!jobInput.apiKeyConfig?.baseUrl || !jobInput.apiKeyConfig?.apiKey || !jobInput.apiKeyConfig?.model) {
-        throw new Error("Konfigurasi API key tidak valid untuk retry");
+        throwBadRequest("Invalid API key configuration for retry");
       }
 
       const newJobId = await enqueueGeneration(ctx.session.user.id, jobInput);

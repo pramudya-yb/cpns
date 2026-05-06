@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and, desc, sql, inArray, or } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
 import { db } from "@labas/db";
 import {
@@ -13,6 +13,10 @@ import {
   sectionType,
   user,
 } from "@labas/db";
+import { paginationSchema, paginateDefaults } from "../lib/pagination";
+import { assertOwnership } from "../lib/ownership";
+import { buildVisibilityCondition } from "../lib/visibility";
+import { throwBadRequest } from "../lib/errors";
 
 export const comboRouter = router({
   list: publicProcedure
@@ -21,19 +25,20 @@ export const comboRouter = router({
         .object({
           isPublic: z.boolean().optional(),
           search: z.string().optional(),
-          limit: z.number().min(1).max(50).default(20),
-          offset: z.number().min(0).default(0),
+          ...paginationSchema.shape,
         })
         .optional(),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session?.user.id;
+      const { limit, offset } = paginateDefaults(input);
       const conditions = [];
 
       if (input?.isPublic !== undefined) {
         conditions.push(eq(comboPackage.isPublic, input.isPublic));
-      } else if (!userId) {
-        conditions.push(eq(comboPackage.isPublic, true));
+      } else {
+        const vis = buildVisibilityCondition(comboPackage, userId);
+        if (vis) conditions.push(vis);
       }
 
       const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -53,8 +58,8 @@ export const comboRouter = router({
         .leftJoin(user, eq(comboPackage.creatorUserId, user.id))
         .where(where)
         .orderBy(desc(comboPackage.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
 
       const [countResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -69,13 +74,13 @@ export const comboRouter = router({
       z
         .object({
           search: z.string().optional(),
-          limit: z.number().min(1).max(50).default(20),
-          offset: z.number().min(0).default(0),
+          ...paginationSchema.shape,
         })
         .optional(),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+      const { limit, offset } = paginateDefaults(input);
       const conditions = [eq(comboPackage.creatorUserId, userId)];
       const where = and(...conditions);
 
@@ -91,8 +96,8 @@ export const comboRouter = router({
         .from(comboPackage)
         .where(where)
         .orderBy(desc(comboPackage.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
 
       const [countResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -220,7 +225,7 @@ export const comboRouter = router({
         .returning();
 
       if (!combo) {
-        throw new Error("Failed to create combo package");
+        throwBadRequest("Failed to create combo package");
       }
 
       await db.insert(comboSection).values(
@@ -329,23 +334,33 @@ export const comboRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
       const [combo] = await db
+        .select()
+        .from(comboPackage)
+        .where(eq(comboPackage.id, id))
+        .limit(1);
+
+      assertOwnership(combo, ctx.session.user.id, "Combo");
+
+      const [updated] = await db
         .update(comboPackage)
         .set(data)
-        .where(
-          and(eq(comboPackage.id, id), eq(comboPackage.creatorUserId, ctx.session.user.id)),
-        )
+        .where(eq(comboPackage.id, id))
         .returning();
-      return combo ?? null;
+      return updated ?? null;
     }),
 
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await db
-        .delete(comboPackage)
-        .where(
-          and(eq(comboPackage.id, input.id), eq(comboPackage.creatorUserId, ctx.session.user.id)),
-        );
+      const [combo] = await db
+        .select()
+        .from(comboPackage)
+        .where(eq(comboPackage.id, input.id))
+        .limit(1);
+
+      assertOwnership(combo, ctx.session.user.id, "Combo");
+
+      await db.delete(comboPackage).where(eq(comboPackage.id, input.id));
       return { success: true };
     }),
 
@@ -355,24 +370,22 @@ export const comboRouter = router({
       z.object({
         examTypeId: z.string().optional(),
         search: z.string().optional(),
-        limit: z.number().min(1).max(50).default(20),
-        offset: z.number().min(0).default(0),
+        ...paginationSchema.shape,
       }).optional(),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+      const { limit, offset } = paginateDefaults(input);
 
-      // Get packages the user can access (public or owned)
-      const pkgConditions = [
-        and(
-          eq(testPackage.isPublic, true),
-          eq(testPackage.creatorUserId, userId),
-        ),
-      ];
+      const pkgConditions = [];
+      const vis = buildVisibilityCondition(testPackage, userId);
+      if (vis) pkgConditions.push(vis);
 
       if (input?.examTypeId) {
         pkgConditions.push(eq(testPackage.examTypeId, input.examTypeId));
       }
+
+      const pkgWhere = pkgConditions.length > 0 ? and(...pkgConditions) : undefined;
 
       const packages = await db
         .select({
@@ -385,14 +398,9 @@ export const comboRouter = router({
         })
         .from(testPackage)
         .leftJoin(examType, eq(testPackage.examTypeId, examType.id))
-        .where(
-          or(
-            eq(testPackage.isPublic, true),
-            eq(testPackage.creatorUserId, userId),
-          ),
-        )
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .where(pkgWhere)
+        .limit(limit)
+        .offset(offset);
 
       const packageIds = packages.map((p) => p.id);
 

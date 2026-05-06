@@ -3,6 +3,48 @@ import { eq, and, desc, sql, like, or } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
 import { db } from "@labas/db";
 import { question, examType, sectionType, user } from "@labas/db";
+import { paginationSchema, paginateDefaults } from "../lib/pagination";
+import { buildVisibilityCondition } from "../lib/visibility";
+import { assertOwnership } from "../lib/ownership";
+import { throwNotFound } from "../lib/errors";
+
+const questionListSelect = {
+  id: question.id,
+  examTypeId: question.examTypeId,
+  sectionTypeId: question.sectionTypeId,
+  format: question.format,
+  passageText: question.passageText,
+  questionText: question.questionText,
+  options: question.options,
+  correctAnswer: question.correctAnswer,
+  explanation: question.explanation,
+  difficulty: question.difficulty,
+  skillTags: question.skillTags,
+  source: question.source,
+  aiModel: question.aiModel,
+  creatorUserId: question.creatorUserId,
+  isPublic: question.isPublic,
+  usageCount: question.usageCount,
+  avgRating: question.avgRating,
+  createdAt: question.createdAt,
+  updatedAt: question.updatedAt,
+  creatorName: user.name,
+  examTypeName: examType.name,
+  sectionTypeName: sectionType.name,
+};
+
+const questionDetailSelect = {
+  ...questionListSelect,
+};
+
+function buildSearchCondition(term: string) {
+  const pattern = `%${term}%`;
+  return or(
+    like(question.passageText, pattern),
+    like(question.questionText, pattern),
+    like(question.explanation, pattern),
+  );
+}
 
 export const questionRouter = router({
   list: publicProcedure
@@ -17,8 +59,7 @@ export const questionRouter = router({
           creatorUserId: z.string().optional(),
           search: z.string().optional(),
           skillTags: z.array(z.string()).optional(),
-          limit: z.number().min(1).max(50).default(20),
-          offset: z.number().min(0).default(0),
+          ...paginationSchema?.shape,
         })
         .optional(),
     )
@@ -31,77 +72,40 @@ export const questionRouter = router({
       if (input?.format) conditions.push(eq(question.format, input.format));
       if (input?.difficulty) conditions.push(eq(question.difficulty, input.difficulty));
       if (input?.skillTags?.length) {
-        conditions.push(
-          sql`${question.skillTags} && ${input.skillTags}`,
-        );
+        conditions.push(sql`${question.skillTags} && ${input.skillTags}`);
       }
 
       if (input?.creatorUserId) {
         conditions.push(eq(question.creatorUserId, input.creatorUserId));
       } else if (input?.isPublic !== undefined) {
         conditions.push(eq(question.isPublic, input.isPublic));
-      } else if (userId) {
-        // Default for authenticated users: show public questions + their own private questions
-        conditions.push(
-          or(eq(question.isPublic, true), eq(question.creatorUserId, userId)),
-        );
       } else {
-        // Default for guests: only public questions
-        conditions.push(eq(question.isPublic, true));
+        const vis = buildVisibilityCondition(question, userId);
+        if (vis) conditions.push(vis);
       }
 
       if (input?.search) {
-        const term = `%${input.search}%`;
-        const searchCond = or(
-          like(question.passageText, term),
-          like(question.questionText, term),
-          like(question.explanation, term),
-        );
+        const searchCond = buildSearchCondition(input.search);
         if (searchCond) conditions.push(searchCond);
       }
 
       const where = conditions.length > 0 ? and(...conditions) : undefined;
+      const { limit, offset } = paginateDefaults(input);
 
       const rows = await db
-        .select({
-          id: question.id,
-          examTypeId: question.examTypeId,
-          sectionTypeId: question.sectionTypeId,
-          format: question.format,
-          passageText: question.passageText,
-          questionText: question.questionText,
-          options: question.options,
-          correctAnswer: question.correctAnswer,
-          explanation: question.explanation,
-          difficulty: question.difficulty,
-          skillTags: question.skillTags,
-          source: question.source,
-          aiModel: question.aiModel,
-          creatorUserId: question.creatorUserId,
-          isPublic: question.isPublic,
-          usageCount: question.usageCount,
-          avgRating: question.avgRating,
-          createdAt: question.createdAt,
-          updatedAt: question.updatedAt,
-          creatorName: user.name,
-          examTypeName: examType.name,
-          sectionTypeName: sectionType.name,
-        })
+        .select(questionListSelect)
         .from(question)
         .leftJoin(user, eq(question.creatorUserId, user.id))
         .leftJoin(examType, eq(question.examTypeId, examType.id))
         .leftJoin(sectionType, eq(question.sectionTypeId, sectionType.id))
         .where(where)
         .orderBy(desc(question.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
 
       const [countResult] = await db
         .select({ count: sql<number>`count(*)` })
         .from(question)
-        .leftJoin(user, eq(question.creatorUserId, user.id))
-        .leftJoin(examType, eq(question.examTypeId, examType.id))
-        .leftJoin(sectionType, eq(question.sectionTypeId, sectionType.id))
         .where(where);
 
       return { questions: rows, total: Number(countResult?.count ?? 0) };
@@ -112,8 +116,7 @@ export const questionRouter = router({
       z
         .object({
           search: z.string().optional(),
-          limit: z.number().min(1).max(50).default(20),
-          offset: z.number().min(0).default(0),
+          ...paginationSchema?.shape,
         })
         .optional(),
     )
@@ -122,15 +125,12 @@ export const questionRouter = router({
       const conditions = [eq(question.creatorUserId, userId)];
 
       if (input?.search) {
-        const term = `%${input.search}%`;
-        const searchCond = or(
-          like(question.passageText, term),
-          like(question.questionText, term),
-        );
+        const searchCond = buildSearchCondition(input.search);
         if (searchCond) conditions.push(searchCond);
       }
 
       const where = and(...conditions);
+      const { limit, offset } = paginateDefaults(input);
 
       const rows = await db
         .select({
@@ -159,8 +159,8 @@ export const questionRouter = router({
         .leftJoin(sectionType, eq(question.sectionTypeId, sectionType.id))
         .where(where)
         .orderBy(desc(question.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
 
       const [countResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -175,30 +175,7 @@ export const questionRouter = router({
     .query(async ({ ctx, input }) => {
       const userId = ctx.session?.user.id;
       const [row] = await db
-        .select({
-          id: question.id,
-          examTypeId: question.examTypeId,
-          sectionTypeId: question.sectionTypeId,
-          format: question.format,
-          passageText: question.passageText,
-          questionText: question.questionText,
-          options: question.options,
-          correctAnswer: question.correctAnswer,
-          explanation: question.explanation,
-          difficulty: question.difficulty,
-          skillTags: question.skillTags,
-          source: question.source,
-          aiModel: question.aiModel,
-          creatorUserId: question.creatorUserId,
-          isPublic: question.isPublic,
-          usageCount: question.usageCount,
-          avgRating: question.avgRating,
-          createdAt: question.createdAt,
-          updatedAt: question.updatedAt,
-          creatorName: user.name,
-          examTypeName: examType.name,
-          sectionTypeName: sectionType.name,
-        })
+        .select(questionDetailSelect)
         .from(question)
         .leftJoin(user, eq(question.creatorUserId, user.id))
         .leftJoin(examType, eq(question.examTypeId, examType.id))
@@ -271,12 +248,15 @@ export const questionRouter = router({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const [existing] = await db
-        .select({ isPublic: question.isPublic })
+        .select({ id: question.id, isPublic: question.isPublic, creatorUserId: question.creatorUserId })
         .from(question)
-        .where(and(eq(question.id, input.id), eq(question.creatorUserId, ctx.session.user.id)))
+        .where(eq(question.id, input.id))
         .limit(1);
 
-      if (!existing) throw new Error("Question not found or not authorized");
+      if (!existing) {
+        throwNotFound("Question");
+      }
+      assertOwnership(existing, ctx.session.user.id, "Question");
 
       const [row] = await db
         .update(question)
@@ -289,9 +269,15 @@ export const questionRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await db
-        .delete(question)
-        .where(and(eq(question.id, input.id), eq(question.creatorUserId, ctx.session.user.id)));
+      const [existing] = await db
+        .select({ id: question.id, creatorUserId: question.creatorUserId })
+        .from(question)
+        .where(eq(question.id, input.id))
+        .limit(1);
+
+      assertOwnership(existing, ctx.session.user.id, "Question");
+
+      await db.delete(question).where(eq(question.id, input.id));
       return { success: true };
     }),
 });

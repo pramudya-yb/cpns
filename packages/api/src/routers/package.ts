@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and, or, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
 import { db } from "@labas/db";
 import {
@@ -11,6 +11,10 @@ import {
   sectionType,
   user,
 } from "@labas/db";
+import { paginationSchema, paginateDefaults } from "../lib/pagination";
+import { assertOwnership } from "../lib/ownership";
+import { buildVisibilityCondition } from "../lib/visibility";
+import { throwNotFound, throwBadRequest } from "../lib/errors";
 
 export const packageRouter = router({
   list: publicProcedure
@@ -20,27 +24,22 @@ export const packageRouter = router({
           examTypeId: z.string().optional(),
           isPublic: z.boolean().optional(),
           search: z.string().optional(),
-          limit: z.number().min(1).max(50).default(20),
-          offset: z.number().min(0).default(0),
+          ...paginationSchema.shape,
         })
         .optional(),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session?.user.id;
+      const { limit, offset } = paginateDefaults(input);
       const conditions = [];
 
       if (input?.examTypeId) conditions.push(eq(testPackage.examTypeId, input.examTypeId));
 
       if (input?.isPublic !== undefined) {
         conditions.push(eq(testPackage.isPublic, input.isPublic));
-      } else if (!userId) {
-        // Guests: only public packages
-        conditions.push(eq(testPackage.isPublic, true));
       } else {
-        // Logged-in users: public packages + their own private packages
-        conditions.push(
-          or(eq(testPackage.isPublic, true), eq(testPackage.creatorUserId, userId)),
-        );
+        const vis = buildVisibilityCondition(testPackage, userId);
+        if (vis) conditions.push(vis);
       }
 
       const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -68,8 +67,8 @@ export const packageRouter = router({
         .leftJoin(examType, eq(testPackage.examTypeId, examType.id))
         .where(where)
         .orderBy(desc(testPackage.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
 
       const [countResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -86,13 +85,13 @@ export const packageRouter = router({
         .object({
           search: z.string().optional(),
           examTypeId: z.string().optional(),
-          limit: z.number().min(1).max(50).default(20),
-          offset: z.number().min(0).default(0),
+          ...paginationSchema.shape,
         })
         .optional(),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+      const { limit, offset } = paginateDefaults(input);
       const conditions = [eq(testPackage.creatorUserId, userId)];
 
       if (input?.search) {
@@ -127,8 +126,8 @@ export const packageRouter = router({
         .leftJoin(examType, eq(testPackage.examTypeId, examType.id))
         .where(where)
         .orderBy(desc(testPackage.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
 
       const [countResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -268,23 +267,33 @@ export const packageRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
       const [pkg] = await db
+        .select()
+        .from(testPackage)
+        .where(eq(testPackage.id, id))
+        .limit(1);
+
+      assertOwnership(pkg, ctx.session.user.id, "Package");
+
+      const [updated] = await db
         .update(testPackage)
         .set(data)
-        .where(
-          and(eq(testPackage.id, id), eq(testPackage.creatorUserId, ctx.session.user.id)),
-        )
+        .where(eq(testPackage.id, id))
         .returning();
-      return pkg ?? null;
+      return updated ?? null;
     }),
 
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await db
-        .delete(testPackage)
-        .where(
-          and(eq(testPackage.id, input.id), eq(testPackage.creatorUserId, ctx.session.user.id)),
-        );
+      const [pkg] = await db
+        .select()
+        .from(testPackage)
+        .where(eq(testPackage.id, input.id))
+        .limit(1);
+
+      assertOwnership(pkg, ctx.session.user.id, "Package");
+
+      await db.delete(testPackage).where(eq(testPackage.id, input.id));
       return { success: true };
     }),
 
@@ -304,14 +313,12 @@ export const packageRouter = router({
 
       // Verify ownership
       const [pkg] = await db
-        .select({ creatorUserId: testPackage.creatorUserId })
+        .select()
         .from(testPackage)
         .where(eq(testPackage.id, packageId))
         .limit(1);
 
-      if (!pkg || pkg.creatorUserId !== ctx.session.user.id) {
-        throw new Error("Package not found or not authorized");
-      }
+      assertOwnership(pkg, ctx.session.user.id, "Package");
 
       const [section] = await db
         .insert(packageSection)
@@ -341,17 +348,15 @@ export const packageRouter = router({
         .where(eq(packageSection.id, input.sectionId))
         .limit(1);
 
-      if (!section) throw new Error("Section not found");
+      if (!section) throwNotFound("Section");
 
       const [pkg] = await db
-        .select({ creatorUserId: testPackage.creatorUserId })
+        .select()
         .from(testPackage)
         .where(eq(testPackage.id, section.packageId))
         .limit(1);
 
-      if (!pkg || pkg.creatorUserId !== ctx.session.user.id) {
-        throw new Error("Not authorized");
-      }
+      assertOwnership(pkg, ctx.session.user.id, "Package");
 
       // Count questions in this section
       const [countResult] = await db
@@ -390,17 +395,15 @@ export const packageRouter = router({
         .where(eq(packageSection.id, input.sectionId))
         .limit(1);
 
-      if (!section) throw new Error("Section not found");
+      if (!section) throwNotFound("Section");
 
       const [pkg] = await db
-        .select({ creatorUserId: testPackage.creatorUserId })
+        .select()
         .from(testPackage)
         .where(eq(testPackage.id, section.packageId))
         .limit(1);
 
-      if (!pkg || pkg.creatorUserId !== ctx.session.user.id) {
-        throw new Error("Not authorized");
-      }
+      assertOwnership(pkg, ctx.session.user.id, "Package");
 
       const [sq] = await db
         .insert(sectionQuestion)
@@ -432,7 +435,7 @@ export const packageRouter = router({
         .where(eq(sectionQuestion.id, input.sectionQuestionId))
         .limit(1);
 
-      if (!sq) throw new Error("Section question not found");
+      if (!sq) throwNotFound("Section question");
 
       const [section] = await db
         .select({ packageId: packageSection.packageId })
@@ -440,17 +443,15 @@ export const packageRouter = router({
         .where(eq(packageSection.id, sq.sectionId))
         .limit(1);
 
-      if (!section) throw new Error("Section not found");
+      if (!section) throwNotFound("Section");
 
       const [pkg] = await db
-        .select({ creatorUserId: testPackage.creatorUserId })
+        .select()
         .from(testPackage)
         .where(eq(testPackage.id, section.packageId))
         .limit(1);
 
-      if (!pkg || pkg.creatorUserId !== ctx.session.user.id) {
-        throw new Error("Not authorized");
-      }
+      assertOwnership(pkg, ctx.session.user.id, "Package");
 
       await db
         .delete(sectionQuestion)

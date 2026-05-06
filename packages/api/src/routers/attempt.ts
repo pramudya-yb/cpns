@@ -12,6 +12,9 @@ import {
   question,
   examType,
 } from "@labas/db";
+import { paginationSchema, paginateDefaults } from "../lib/pagination";
+import { assertOwnership } from "../lib/ownership";
+import { throwNotFound, throwForbidden, throwBadRequest } from "../lib/errors";
 
 function normalizeAnswer(format: string, userAnswer: string, correctAnswer: string): boolean {
   const ua = userAnswer.trim();
@@ -55,10 +58,7 @@ export const attemptRouter = router({
         .where(eq(testPackage.id, input.packageId))
         .limit(1);
 
-      if (!pkg) throw new Error("Package not found");
-      if (!pkg.isPublic && pkg.creatorUserId !== userId) {
-        throw new Error("Not authorized to access this package");
-      }
+      assertOwnership(pkg, userId, "Package");
 
       const sections = await db
         .select({
@@ -78,7 +78,7 @@ export const attemptRouter = router({
         })
         .returning();
 
-      if (!attempt) throw new Error("Failed to create attempt");
+      if (!attempt) throwBadRequest("Failed to create attempt");
 
       for (const section of sections) {
         await db.insert(sectionResult).values({
@@ -107,7 +107,7 @@ export const attemptRouter = router({
         .limit(1);
 
       if (!attempt) return null;
-      if (attempt.userId !== userId) throw new Error("Not authorized");
+      if (attempt.userId !== userId) throwForbidden();
 
       const dbSections = await db
         .select()
@@ -228,9 +228,9 @@ export const attemptRouter = router({
         .where(eq(testAttempt.id, input.attemptId))
         .limit(1);
 
-      if (!attempt) throw new Error("Attempt not found");
-      if (attempt.userId !== userId) throw new Error("Not authorized");
-      if (attempt.status !== "in_progress") throw new Error("Attempt already finished");
+      if (!attempt) throwNotFound("Attempt");
+      if (attempt.userId !== userId) throwForbidden();
+      if (attempt.status !== "in_progress") throwBadRequest("Attempt already finished");
 
       const [q] = await db
         .select()
@@ -238,7 +238,7 @@ export const attemptRouter = router({
         .where(eq(question.id, input.questionId))
         .limit(1);
 
-      if (!q) throw new Error("Question not found");
+      if (!q) throwNotFound("Question");
 
       const isCorrect = normalizeAnswer(q.format, input.userAnswer, q.correctAnswer);
 
@@ -286,9 +286,9 @@ export const attemptRouter = router({
         .where(eq(testAttempt.id, input.attemptId))
         .limit(1);
 
-      if (!attempt) throw new Error("Attempt not found");
-      if (attempt.userId !== userId) throw new Error("Not authorized");
-      if (attempt.status !== "in_progress") throw new Error("Attempt already finished");
+      if (!attempt) throwNotFound("Attempt");
+      if (attempt.userId !== userId) throwForbidden();
+      if (attempt.status !== "in_progress") throwBadRequest("Attempt already finished");
 
       const dbSections = await db
         .select()
@@ -420,9 +420,9 @@ export const attemptRouter = router({
         .where(eq(testAttempt.id, input.attemptId))
         .limit(1);
 
-      if (!attempt) throw new Error("Attempt not found");
-      if (attempt.userId !== userId) throw new Error("Not authorized");
-      if (attempt.status !== "in_progress") throw new Error("Attempt not in progress");
+      if (!attempt) throwNotFound("Attempt");
+      if (attempt.userId !== userId) throwForbidden();
+      if (attempt.status !== "in_progress") throwBadRequest("Attempt not in progress");
 
       await db
         .update(testAttempt)
@@ -437,13 +437,13 @@ export const attemptRouter = router({
       z
         .object({
           packageId: z.string().uuid().optional(),
-          limit: z.number().min(1).max(50).default(20),
-          offset: z.number().min(0).default(0),
+          ...paginationSchema.shape,
         })
         .optional(),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+      const { limit, offset } = paginateDefaults(input);
       const conditions = [eq(testAttempt.userId, userId)];
 
       if (input?.packageId) {
@@ -472,8 +472,8 @@ export const attemptRouter = router({
         .leftJoin(examType, eq(testPackage.examTypeId, examType.id))
         .where(where)
         .orderBy(desc(testAttempt.createdAt))
-        .limit(input?.limit ?? 20)
-        .offset(input?.offset ?? 0);
+        .limit(limit)
+        .offset(offset);
 
       const [countResult] = await db
         .select({ count: sql<number>`count(*)` })

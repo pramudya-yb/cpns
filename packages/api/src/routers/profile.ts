@@ -3,6 +3,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
 import { db } from "@labas/db";
 import { testPackage, question, examType, user } from "@labas/db";
+import { throwBadRequest } from "../lib/errors";
 
 export const profileRouter = router({
   getById: publicProcedure
@@ -102,7 +103,7 @@ export const profileRouter = router({
           image: user.image,
         });
 
-      if (!updated) throw new Error("Failed to update profile");
+      if (!updated) throwBadRequest("Failed to update profile");
       return updated;
     }),
 });
