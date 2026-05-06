@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@labas/ui/components/card";
@@ -98,6 +99,9 @@ function JobLogPanel({ logs, isRunning }: { logs: LogEntry[]; isRunning?: boolea
 
 export const Route = createFileRoute("/jobs")({
   component: RouteComponent,
+  validateSearch: z.object({
+    page: z.coerce.number().min(1).default(1),
+  }).parse,
   beforeLoad: async () => {
     const session = await authClient.getSession();
     if (!session.data) {
@@ -148,13 +152,22 @@ function formatDate(d: string | Date | null) {
   });
 }
 
+const JOBS_PER_PAGE = 10;
+
 function RouteComponent() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const page = search.page;
+
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
+  const setPage = (newPage: number) =>
+    navigate({ search: (prev) => ({ ...prev, page: Math.max(1, newPage) }) });
+
   const jobsQuery = useQuery({
-    ...trpc.ai.myJobs.queryOptions({ limit: 50, offset: 0 }),
+    ...trpc.ai.myJobs.queryOptions({ limit: JOBS_PER_PAGE, offset: (page - 1) * JOBS_PER_PAGE }),
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
@@ -162,6 +175,9 @@ function RouteComponent() {
       return hasRunning ? 1000 : false;
     },
   });
+
+  const jobs = jobsQuery.data ?? [];
+  const hasNextPage = jobs.length === JOBS_PER_PAGE;
 
   const cancelJob = useMutation({
     ...trpc.ai.cancelJob.mutationOptions(),
@@ -203,7 +219,7 @@ function RouteComponent() {
         <div className="p-4 rounded-[var(--radius-md)] bg-[var(--pomegranate-400)]/10 text-[var(--pomegranate-400)] border-2 border-[var(--pomegranate-400)]/20">
           Gagal memuat riwayat: {jobsQuery.error.message}
         </div>
-      ) : !jobsQuery.data?.length ? (
+      ) : !jobs.length ? (
         <Card className="clay-shadow bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)]">
           <CardContent className="py-16 text-center">
             <MaterialIcon name="schedule" className="text-5xl text-[var(--oat-border)] mb-4" />
@@ -219,7 +235,7 @@ function RouteComponent() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {jobsQuery.data.map((job) => {
+          {jobs.map((job) => {
             const isExpanded = expandedJobId === job.id;
             const isLogExpanded = expandedLogId === job.id;
             const result = job.resultJson as GenerationResult | null;
@@ -255,7 +271,7 @@ function RouteComponent() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] text-xs shrink-0"
+                          className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] text-xs shrink-0 cursor-pointer"
                           disabled={cancelJob.isPending}
                           onClick={() => cancelJob.mutate({ jobId: job.id })}
                         >
@@ -268,7 +284,7 @@ function RouteComponent() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="rounded-[var(--radius-lg)] border-2 border-[var(--matcha-400)] text-xs shrink-0 text-[var(--matcha-800)]"
+                          className="rounded-[var(--radius-lg)] border-2 border-[var(--matcha-400)] text-xs shrink-0 text-[var(--matcha-800)] cursor-pointer"
                           disabled={retryJob.isPending}
                           onClick={() => retryJob.mutate({ jobId: job.id })}
                         >
@@ -303,7 +319,7 @@ function RouteComponent() {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-[var(--warm-charcoal)] hover:text-[var(--clay-black)] px-0 h-auto"
+                        className="text-xs text-[var(--warm-charcoal)] hover:text-[var(--clay-black)] p-2 h-auto cursor-pointer"
                         onClick={() => setExpandedLogId((prev) => (prev === job.id ? null : job.id))}
                       >
                         <MaterialIcon name={isLogExpanded ? "expand_less" : "expand_more"} className="text-sm mr-1" />
@@ -343,7 +359,7 @@ function RouteComponent() {
                         variant="outline"
                         size="sm"
                         onClick={() => toggleExpand(job.id)}
-                        className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] text-xs"
+                        className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] text-xs cursor-pointer"
                       >
                         <MaterialIcon name={isExpanded ? "expand_less" : "expand_more"} className="text-sm mr-1" />
                         {isExpanded ? "Tutup" : "Lihat Soal"}
@@ -418,6 +434,29 @@ function RouteComponent() {
               </Card>
             );
           })}
+
+          {/* Pagination */}
+          <div className="flex items-center justify-center gap-2 pt-6">
+            <Button
+              variant="outline"
+              onClick={() => setPage(page - 1)}
+              disabled={page <= 1}
+              className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover cursor-pointer"
+            >
+              <MaterialIcon name="chevron_left" />
+            </Button>
+            <span className="text-sm text-[var(--warm-charcoal)] px-4">
+              Halaman {page}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setPage(page + 1)}
+              disabled={!hasNextPage}
+              className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover cursor-pointer"
+            >
+              <MaterialIcon name="chevron_right" />
+            </Button>
+          </div>
         </div>
       )}
     </div>
