@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { trpc } from "@/utils/trpc";
 import { Card, CardContent } from "@labas/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { Avatar } from "@/components/ui/Avatar";
 
 export const Route = createFileRoute("/profile/$userId")({
   component: ProfileComponent,
@@ -44,13 +45,12 @@ function ProfileComponent() {
       <Card className="clay-shadow bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)] mb-8">
         <CardContent className="p-6 md:p-8">
           <div className="flex items-center gap-4 md:gap-6">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[var(--matcha-300)] flex items-center justify-center text-2xl md:text-3xl font-bold text-[var(--matcha-800)] shrink-0">
-              {user.image ? (
-                <img src={user.image} alt={user.name} className="w-full h-full rounded-full object-cover" />
-              ) : (
-                (user.name?.[0] ?? "?").toUpperCase()
-              )}
-            </div>
+            <Avatar
+              src={user.image}
+              name={user.name}
+              size="xl"
+              variant="profile"
+            />
             <div>
               <h1 className="text-2xl md:text-3xl font-headline font-extrabold text-[var(--clay-black)]">
                 {user.name ?? "Pengguna"}

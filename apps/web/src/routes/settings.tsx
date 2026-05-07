@@ -559,19 +559,19 @@ function RouteComponent() {
                   </div>
                 </div>
                 <div className="text-xs text-[var(--warm-charcoal)] space-y-2">
-                  <p className="flex items-start gap-2">
+                  <p className="flex items-center gap-2">
                     <MaterialIcon name="check_circle" className="text-xs text-[var(--matcha-600)] shrink-0 mt-0.5" />
                     API key tidak pernah dikirim ke server kami
                   </p>
-                  <p className="flex items-start gap-2">
+                  <p className="flex items-center gap-2">
                     <MaterialIcon name="check_circle" className="text-xs text-[var(--matcha-600)] shrink-0 mt-0.5" />
                     Data terenkripsi di localStorage browser Anda
                   </p>
-                  <p className="flex items-start gap-2">
+                  <p className="flex items-center gap-2">
                     <MaterialIcon name="check_circle" className="text-xs text-[var(--matcha-600)] shrink-0 mt-0.5" />
                     Key enkripsi tersimpan aman di IndexedDB
                   </p>
-                  <p className="flex items-start gap-2">
+                  <p className="flex items-center gap-2">
                     <MaterialIcon name="check_circle" className="text-xs text-[var(--matcha-600)] shrink-0 mt-0.5" />
                     BYOK — Bring Your Own Key, platform tidak menyimpan key
                   </p>

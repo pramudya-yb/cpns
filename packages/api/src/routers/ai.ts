@@ -36,6 +36,20 @@ export const aiRouter = router({
         rj && typeof rj.qualityPhase === "string" ? rj.qualityPhase : null;
       const resultIsPartial = rj?.isPartial === true;
 
+      // Strip correctAnswer & explanation from resultJson to prevent network inspection
+      if (rj && Array.isArray(rj.questions)) {
+        const sanitizedQuestions = (rj.questions as Array<Record<string, unknown>>).map((q) => {
+          const { correctAnswer, explanation, ...rest } = q;
+          return rest;
+        });
+        return {
+          ...job,
+          resultJson: { ...rj, questions: sanitizedQuestions },
+          qualityPhase,
+          resultIsPartial,
+        };
+      }
+
       return { ...job, qualityPhase, resultIsPartial };
     }),
 

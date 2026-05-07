@@ -3,7 +3,7 @@ import { useRouterState, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@labas/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { useGenerationJob } from "@/hooks/use-generation-job";
+import { useGenerationJobs, type ActiveJob } from "@/hooks/use-generation-jobs";
 import { trpc, queryClient } from "@/utils/trpc";
 
 interface LogEntry {
@@ -13,14 +13,6 @@ interface LogEntry {
   timestamp: string;
   details?: string;
 }
-
-const ACTIVE_JOB_STATUSES = new Set([
-  "pending",
-  "running",
-  "running_fast",
-  "partial_ready",
-  "running_quality",
-]);
 
 const STEP_LABELS: Record<string, string> = {
   generate_passage: "Menulis Bacaan",
@@ -67,9 +59,9 @@ function TerminalLog({ logs, isRunning }: { logs: LogEntry[]; isRunning: boolean
 
   if (!logs?.length) {
     return (
-      <div className="mt-3 rounded-xl bg-black/40 p-3 border border-white/5">
-        <div className="flex items-center gap-2 text-white/40 text-[11px] font-mono">
-          <MaterialIcon name="psychology" className="text-xs animate-pulse" />
+      <div className="mt-2 rounded-lg bg-black/40 p-2 border border-white/5">
+        <div className="flex items-center gap-2 text-white/40 text-[10px] font-mono">
+          <MaterialIcon name="psychology" className="text-[10px] animate-pulse" />
           AI sedang mempersiapkan...
         </div>
       </div>
@@ -79,7 +71,7 @@ function TerminalLog({ logs, isRunning }: { logs: LogEntry[]; isRunning: boolean
   return (
     <div
       ref={scrollRef}
-      className="mt-3 max-h-52 overflow-y-auto rounded-xl bg-black/40 p-3 font-mono text-[11px] leading-relaxed border border-white/5"
+      className="mt-2 max-h-32 overflow-y-auto rounded-lg bg-black/40 p-2 font-mono text-[10px] leading-relaxed border border-white/5"
     >
       {logs.map((log, i) => {
         const isExpanded = expandedIdx === i;
@@ -90,7 +82,7 @@ function TerminalLog({ logs, isRunning }: { logs: LogEntry[]; isRunning: boolean
         return (
           <div key={i} className="flex flex-col">
             <div
-              className={`flex items-start gap-2 py-1 ${hasDetails ? "cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 transition-colors" : ""}`}
+              className={`flex items-start gap-1.5 py-0.5 ${hasDetails ? "cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 transition-colors" : ""}`}
               onClick={() => hasDetails && setExpandedIdx(isExpanded ? null : i)}
             >
               <LogStatusIcon status={log.status} />
@@ -98,43 +90,25 @@ function TerminalLog({ logs, isRunning }: { logs: LogEntry[]; isRunning: boolean
                 {new Date(log.timestamp).toLocaleTimeString("id-ID", {
                   hour: "2-digit",
                   minute: "2-digit",
-                  second: "2-digit",
                 })}
               </span>
-              <div className="flex flex-col min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={`font-semibold ${
-                      log.status === "error"
-                        ? "text-[var(--pomegranate-400)]"
-                        : log.status === "done"
-                          ? "text-[var(--matcha-400)]"
-                          : "text-white/80"
-                    }`}
-                  >
-                    {STEP_LABELS[log.step] ?? log.step}
-                  </span>
-                  {hasDetails && (
-                    <MaterialIcon
-                      name={isExpanded ? "expand_less" : "expand_more"}
-                      className="text-white/30 text-xs"
-                    />
-                  )}
-                </div>
-                {log.message && (
-                  <span className="text-white/50 truncate">{log.message}</span>
-                )}
-                {isCurrentRunning && (
-                  <span className="text-[var(--matcha-400)]/70 mt-0.5 flex items-center gap-1">
-                    <span className="w-1 h-1 bg-[var(--matcha-400)] rounded-full animate-pulse" />
-                    AI sedang memproses...
-                  </span>
-                )}
-              </div>
+              <span
+                className={`font-semibold truncate ${
+                  log.status === "error"
+                    ? "text-[var(--pomegranate-400)]"
+                    : log.status === "done"
+                      ? "text-[var(--matcha-400)]"
+                      : "text-white/80"
+                }`}
+              >
+                {STEP_LABELS[log.step] ?? log.step}
+              </span>
+              {isCurrentRunning && (
+                <span className="w-1 h-1 bg-[var(--matcha-400)] rounded-full animate-pulse shrink-0 mt-1" />
+              )}
             </div>
-
             {isExpanded && hasDetails && (
-              <div className="ml-6 mt-1 mb-2 p-2.5 rounded-lg bg-black/60 border border-white/10 text-white/70 whitespace-pre-wrap text-[10px] leading-relaxed max-h-32 overflow-y-auto">
+              <div className="ml-5 mt-0.5 mb-1 p-2 rounded bg-black/60 border border-white/10 text-white/70 whitespace-pre-wrap text-[9px] leading-relaxed max-h-24 overflow-y-auto">
                 {log.details}
               </div>
             )}
@@ -145,19 +119,100 @@ function TerminalLog({ logs, isRunning }: { logs: LogEntry[]; isRunning: boolean
   );
 }
 
-export function GlobalGenerationProgress() {
-  const { jobId, isGenerating, jobQuery, setJobId, setError } =
-    useGenerationJob();
+function SingleJobCard({
+  job,
+  onCancel,
+  cancelPending,
+}: {
+  job: ActiveJob;
+  onCancel: (jobId: string) => void;
+  cancelPending: boolean;
+}) {
   const [minimized, setMinimized] = useState(false);
+  const progress = job.progress ?? 0;
+  const message = job.progressMessage ?? "Sedang berjalan...";
+  const logs = (job.logs ?? []) as LogEntry[];
+  const isAgentic = job.mode === "agentic";
+
+  if (minimized) {
+    return (
+      <button
+        onClick={() => setMinimized(false)}
+        className="flex items-center gap-2 py-1.5 px-3 bg-[var(--clay-black)]/90 rounded-lg text-white text-xs font-semibold border border-[var(--matcha-400)]/30 hover:border-[var(--matcha-400)]/60 transition-all w-full"
+      >
+        <MaterialIcon
+          name="psychology"
+          className="text-[var(--matcha-400)] animate-pulse text-xs"
+        />
+        <span className="truncate flex-1 text-left">{message}</span>
+        <span className="tabular-nums text-[var(--matcha-400)]">{progress}%</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-[var(--clay-black)] border border-white/10 p-3 transition-all">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <MaterialIcon
+            name="psychology"
+            className="text-[var(--matcha-400)] animate-pulse text-sm shrink-0"
+          />
+          <div className="min-w-0">
+            <span className="text-xs font-semibold block truncate">{message}</span>
+            {isAgentic && (
+              <span className="text-[10px] text-[var(--matcha-400)]">Agentic</span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => setMinimized(true)}
+            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+          >
+            <MaterialIcon name="expand_less" className="text-xs" />
+          </button>
+          <button
+            onClick={() => onCancel(job.id)}
+            disabled={cancelPending}
+            className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-[var(--pomegranate-400)]/20 text-white/50 hover:text-[var(--pomegranate-400)] transition-colors disabled:opacity-30"
+          >
+            <MaterialIcon name="close" className="text-xs" />
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="flex justify-between items-center mb-1">
+          <span className="tabular-nums text-xs font-bold text-[var(--matcha-400)]">
+            {progress}%
+          </span>
+        </div>
+        <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[var(--matcha-600)] to-[var(--matcha-400)] transition-all duration-500 rounded-full"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {isAgentic && <TerminalLog logs={logs} isRunning={job.status !== "completed"} />}
+    </div>
+  );
+}
+
+export function GlobalGenerationProgress() {
+  const { activeJobs, isGenerating, removeJob, setError } = useGenerationJobs();
+  const [collapsed, setCollapsed] = useState(false);
 
   const matches = useRouterState({ select: (s) => s.matches });
   const isGeneratePage = matches.some((m) => m.routeId === "/generate");
   const isTakePage = matches.some((m) => m.routeId === "/package/$id/take");
 
-  const cancelJob = useMutation({
+  const cancelMutation = useMutation({
     ...trpc.ai.cancelJob.mutationOptions(),
-    onSuccess: async () => {
-      setJobId(null);
+    onSuccess: async (_data, variables) => {
+      removeJob(variables.jobId);
       setError(null);
       await queryClient.invalidateQueries({
         queryKey: trpc.ai.myJobs.queryKey(),
@@ -167,62 +222,55 @@ export function GlobalGenerationProgress() {
 
   if (!isGenerating || isTakePage) return null;
 
-  const progress = jobQuery.data?.progress ?? 0;
-  const message = jobQuery.data?.progressMessage ?? "Sedang berjalan...";
-  const logs = (jobQuery.data?.logs ?? []) as LogEntry[];
-  const isAgentic = jobQuery.data?.mode === "agentic";
+  const handleCancel = (jobId: string) => {
+    cancelMutation.mutate({ jobId });
+  };
 
-  // Minimized floating pill
-  if (minimized) {
+  // Collapsed floating pill showing count
+  if (collapsed) {
     return (
       <button
-        onClick={() => setMinimized(false)}
+        onClick={() => setCollapsed(false)}
         className="fixed bottom-8 right-6 z-50 h-11 pl-4 pr-5 bg-[var(--clay-black)] rounded-full flex items-center gap-2.5 text-white text-sm font-semibold shadow-2xl border border-[var(--matcha-400)]/30 hover:border-[var(--matcha-400)]/60 transition-all"
       >
         <MaterialIcon
           name="psychology"
           className="text-[var(--matcha-400)] animate-pulse text-sm"
         />
-        <span className="tabular-nums">{progress}%</span>
+        <span>{activeJobs.length} active</span>
       </button>
     );
   }
 
-  // Expanded floating card
   return (
     <div
-      className={`fixed bottom-8 right-6 z-50 rounded-2xl shadow-2xl border p-5 text-white transition-all ${
+      className={`fixed bottom-8 right-6 z-50 rounded-2xl shadow-2xl border p-4 text-white transition-all ${
         isGeneratePage
-          ? "w-96 sm:w-[28rem] ring-2 ring-[var(--matcha-400)]/40 border-[var(--matcha-400)]/30 bg-[var(--clay-black)]"
-          : "w-80 sm:w-96 border-white/10 bg-[var(--clay-black)]"
+          ? "w-80 sm:w-[26rem] ring-2 ring-[var(--matcha-400)]/40 border-[var(--matcha-400)]/30 bg-[var(--clay-black)]"
+          : "w-72 sm:w-80 border-white/10 bg-[var(--clay-black)]"
       }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <MaterialIcon
             name="psychology"
             className="text-[var(--matcha-400)] animate-pulse text-base"
           />
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">AI Generation</span>
-            {isAgentic && (
-              <span className="text-[10px] text-[var(--matcha-400)] font-medium">
-                Agentic Mode
-              </span>
-            )}
-          </div>
+          <span className="text-sm font-semibold">
+            AI Generation{activeJobs.length > 1 ? ` (${activeJobs.length})` : ""}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <Link
             to="/generate"
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
             title="Buka halaman generate"
           >
             <MaterialIcon name="open_in_new" className="text-sm" />
           </Link>
           <button
-            onClick={() => setMinimized(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            onClick={() => setCollapsed(true)}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
             title="Minimize"
           >
             <MaterialIcon name="expand_more" className="text-sm" />
@@ -230,39 +278,16 @@ export function GlobalGenerationProgress() {
         </div>
       </div>
 
-      <div className="mb-3">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-white/70 truncate pr-3 font-medium">
-            {message}
-          </span>
-          <span className="text-sm font-bold tabular-nums shrink-0 text-[var(--matcha-400)]">
-            {progress}%
-          </span>
-        </div>
-        <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden shadow-inner">
-          <div
-            className="h-full bg-gradient-to-r from-[var(--matcha-600)] to-[var(--matcha-400)] transition-all duration-500 rounded-full shadow-[0_0_12px_rgba(134,194,122,0.5)]"
-            style={{ width: `${progress}%` }}
+      <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
+        {activeJobs.map((job) => (
+          <SingleJobCard
+            key={job.id}
+            job={job}
+            onCancel={handleCancel}
+            cancelPending={cancelMutation.isPending}
           />
-        </div>
+        ))}
       </div>
-
-      {isAgentic && (
-        <TerminalLog logs={logs} isRunning={ACTIVE_JOB_STATUSES.has(jobQuery.data?.status ?? "")} />
-      )}
-
-      {jobId && (
-        <Button
-          type="button"
-          size="sm"
-          className="w-full mt-3 rounded-[var(--radius-lg)] bg-white/10 hover:bg-white/20 text-white border-0 text-xs font-semibold h-9"
-          disabled={cancelJob.isPending}
-          onClick={() => cancelJob.mutate({ jobId })}
-        >
-          <MaterialIcon name="cancel" className="text-sm mr-1.5" />
-          Batal
-        </Button>
-      )}
     </div>
   );
 }

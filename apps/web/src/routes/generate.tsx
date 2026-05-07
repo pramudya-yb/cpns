@@ -4,7 +4,7 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useApiKeys } from "@/hooks/use-api-key";
-import { useGenerationJob } from "@/hooks/use-generation-job";
+import { useGenerationJobs, type CompletedResult } from "@/hooks/use-generation-jobs";
 import { Button } from "@labas/ui/components/button";
 import {
   Select,
@@ -25,6 +25,8 @@ import {
   QUESTION_COUNT_PRESETS,
 } from "@/lib/generate-constants";
 import "flag-icons/css/flag-icons.min.css";
+
+const MAX_PARALLEL = 3;
 
 export const Route = createFileRoute("/generate")({
   component: RouteComponent,
@@ -53,22 +55,45 @@ function RouteComponent() {
   const selectedConfig = configs.find((c) => c.id === selectedKeyId);
 
   const {
-    result,
-    error,
-    generatedPackageId,
+    activeCount,
+    completedResults,
     isGenerating,
+    error,
+    addJob,
+    removeJob,
+    resetAll,
     setError,
-    setJobId,
-    reset,
-  } = useGenerationJob();
+  } = useGenerationJobs();
+
+  const [activeTabIdx, setActiveTabIdx] = useState(0);
+  const prevResultsLengthRef = useRef(0);
 
   // Auto-scroll to results when they appear
   const resultsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (result && resultsRef.current) {
+    if (completedResults.length > 0 && resultsRef.current) {
       resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [result]);
+  }, [completedResults.length]);
+
+  useEffect(() => {
+    const prev = prevResultsLengthRef.current;
+    prevResultsLengthRef.current = completedResults.length;
+
+    if (completedResults.length === 0) {
+      setActiveTabIdx(0);
+      return;
+    }
+
+    if (completedResults.length > prev) {
+      setActiveTabIdx(completedResults.length - 1);
+      return;
+    }
+
+    if (activeTabIdx >= completedResults.length) {
+      setActiveTabIdx(completedResults.length - 1);
+    }
+  }, [completedResults.length]);
 
   const [examType, setExamType] = useState("IELTS");
   const [selectedSections, setSelectedSections] = useState<string[]>(["READING"]);
@@ -94,19 +119,17 @@ function RouteComponent() {
   const generate = useMutation({
     ...trpc.ai.generate.mutationOptions(),
     onSuccess: (data) => {
-      setJobId(data.jobId);
+      addJob(data.jobId);
       setError(null);
     },
     onError: (err) => {
       setError(err.message);
-      setJobId(null);
     },
   });
 
   const toggleSection = (id: string) => {
     setSelectedSections((prev) => {
       if (prev.includes(id)) {
-        // Prevent unselecting the last section
         if (prev.length === 1) return prev;
         return prev.filter((s) => s !== id);
       }
@@ -140,8 +163,6 @@ function RouteComponent() {
       return;
     }
 
-    reset();
-
     generate.mutate({
       examType: examType as any,
       section: selectedSections[0] as any,
@@ -166,6 +187,8 @@ function RouteComponent() {
     const rem = questionCount % selectedSections.length;
     return selectedSections.map((s, i) => ({ section: s, count: base + (i < rem ? 1 : 0) }));
   })();
+
+  const activeResult = completedResults[activeTabIdx] ?? null;
 
   return (
     <div className="min-h-screen pt-8 pb-32 px-6 md:px-12 lg:px-16 max-w-7xl mx-auto bg-[var(--warm-cream)]">
@@ -461,7 +484,8 @@ function RouteComponent() {
           weaknessAlign={weaknessAlign}
           mode={mode}
           setMode={setMode}
-          isGenerating={isGenerating}
+          activeCount={activeCount}
+          maxParallel={MAX_PARALLEL}
           generatePending={generate.isPending}
           hasKey={hasConfigs}
           error={error}
@@ -470,10 +494,72 @@ function RouteComponent() {
         />
       </div>
 
-      {/* Results */}
+      {/* Results with Tabs */}
       <div ref={resultsRef}>
-        {result && (
-          <ResultSection result={result} generatedPackageId={generatedPackageId} />
+        {completedResults.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-headline font-bold text-[var(--clay-black)]">
+                Hasil Generate
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetAll}
+                className="text-[var(--warm-charcoal)] hover:text-[var(--pomegranate-400)]"
+              >
+                <MaterialIcon name="delete_sweep" className="text-sm mr-1" />
+                Bersihkan
+              </Button>
+            </div>
+
+            {/* Tab Bar */}
+            <div className="flex gap-1 mb-6 border-b border-[var(--oat-border)] overflow-x-auto">
+              {completedResults.map((res, idx) => {
+                const questions = res.result?.questions ?? [];
+                const isActive = idx === activeTabIdx;
+                return (
+                  <button
+                    key={res.jobId}
+                    onClick={() => setActiveTabIdx(idx)}
+                    className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold rounded-t-lg transition-all whitespace-nowrap border-b-2 min-h-[44px] ${
+                      isActive
+                        ? "bg-[var(--pure-white)] text-[var(--clay-black)] border-[var(--clay-black)]"
+                        : "text-[var(--warm-charcoal)] border-transparent hover:text-[var(--clay-black)] hover:bg-[var(--oat-light)]"
+                    }`}
+                  >
+                    <MaterialIcon
+                      name={questions.length > 0 ? "check_circle" : "sync"}
+                      className={`text-sm ${isActive ? "text-[var(--matcha-400)]" : ""} ${questions.length === 0 && !isActive ? "animate-spin" : ""}`}
+                    />
+                    <span>
+                      {res.mode === "agentic" ? "Agentic" : "Quick"}
+                    </span>
+                    <span className="text-xs text-[var(--warm-charcoal)]">
+                      {questions.length} soal
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeJob(res.jobId);
+                      }}
+                      className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-[var(--pomegranate-400)]/10 text-[var(--warm-charcoal)] hover:text-[var(--pomegranate-400)] transition-colors"
+                    >
+                      <MaterialIcon name="close" className="text-xs" />
+                    </button>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Tab Content */}
+            {activeResult && (
+              <ResultSection
+                result={activeResult.result}
+                generatedPackageId={activeResult.generatedPackageId}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

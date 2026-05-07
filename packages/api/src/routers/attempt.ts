@@ -109,6 +109,8 @@ export const attemptRouter = router({
       if (!attempt) return null;
       if (attempt.userId !== userId) throwForbidden();
 
+      const isInProgress = attempt.status === "in_progress";
+
       const dbSections = await db
         .select()
         .from(sectionResult)
@@ -181,6 +183,25 @@ export const attemptRouter = router({
             question: qMap.get(sq.questionId),
           }));
         }
+      }
+
+      // Strip correctAnswer & explanation during active attempt
+      if (isInProgress) {
+        const sanitizeQuestion = (q: any) => {
+          if (!q) return q;
+          const { correctAnswer, explanation, ...rest } = q;
+          return rest;
+        };
+
+        answers = answers.map((a) => ({
+          ...a,
+          question: sanitizeQuestion(a.question),
+        }));
+
+        sectionQuestions = sectionQuestions.map((sq) => ({
+          ...sq,
+          question: sanitizeQuestion(sq.question),
+        }));
       }
 
       // Zip packageSections with dbSections by creation order (both ordered)

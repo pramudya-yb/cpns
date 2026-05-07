@@ -836,7 +836,7 @@ export const generationWorker = new Worker<FastJobData>(
   },
   {
     connection: new IORedis(env.REDIS_URL, connectionOptions),
-    concurrency: 2,
+    concurrency: 5,
   },
 );
 

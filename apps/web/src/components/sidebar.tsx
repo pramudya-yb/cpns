@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { useSidebar } from "@/hooks/use-sidebar";
 
@@ -38,7 +38,10 @@ const navGroups: NavGroup[] = [
   },
   {
     label: "Track",
-    items: [{ to: "/analytics", label: "Analytics", icon: "analytics" }],
+    items: [
+      { to: "/analytics", label: "Analytics", icon: "analytics" },
+      { to: "/leaderboard", label: "Klasemen", icon: "leaderboard" },
+    ],
   },
 ];
 
@@ -78,9 +81,15 @@ function NavLink({ item, isActive, collapsed }: { item: NavItem; isActive: boole
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { collapsed, toggle } = useSidebar();
   const { data: session } = authClient.useSession();
   const isLoggedIn = !!session;
+
+  async function handleSignOut() {
+    await authClient.signOut();
+    navigate({ to: "/landing" });
+  }
 
   return (
     <>
@@ -145,7 +154,7 @@ export function Sidebar() {
           })}
           {isLoggedIn ? (
             <button
-              onClick={() => authClient.signOut()}
+              onClick={handleSignOut}
               className={`flex items-center gap-3 rounded-[var(--radius-lg)] transition-all clay-hover cursor-pointer text-[var(--warm-charcoal)] hover:bg-[var(--oat-light)] hover:text-[var(--clay-black)] w-full ${
                 collapsed ? "justify-center py-3 px-2" : "py-3 px-3 text-left"
               }`}

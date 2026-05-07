@@ -11,7 +11,8 @@ interface TestBlueprintCardProps {
   weaknessAlign: number;
   mode: "quick" | "agentic";
   setMode: (mode: "quick" | "agentic") => void;
-  isGenerating: boolean;
+  activeCount: number;
+  maxParallel: number;
   generatePending: boolean;
   hasKey: boolean;
   error: string | null;
@@ -26,7 +27,8 @@ export function TestBlueprintCard({
   weaknessAlign,
   mode,
   setMode,
-  isGenerating,
+  activeCount,
+  maxParallel,
   generatePending,
   hasKey,
   error,
@@ -140,14 +142,16 @@ export function TestBlueprintCard({
           <Button
             className="w-full py-5 rounded-[var(--radius-lg)] bg-[var(--clay-black)] text-[var(--pure-white)] font-bold text-lg flex items-center justify-center gap-3 clay-shadow clay-hover hover:bg-[var(--warm-charcoal)] transition-all active:scale-95 h-auto min-h-[56px]"
             onClick={onGenerate}
-            disabled={isGenerating || generatePending || selectedFormats.length === 0 || !hasKey}
+            disabled={activeCount >= maxParallel || generatePending || selectedFormats.length === 0 || !hasKey}
           >
             <MaterialIcon name="auto_awesome" className="group-hover:rotate-12 transition-transform" />
-            {isGenerating
-              ? mode === "agentic"
-                ? "Agentic..."
-                : "Generating..."
-              : "Generate & Launch"}
+            {activeCount >= maxParallel
+              ? `Maks ${maxParallel} Paralel`
+              : activeCount > 0
+                ? mode === "agentic"
+                  ? "Agentic..."
+                  : "Generating..."
+                : "Generate & Launch"}
           </Button>
 
           {error && (

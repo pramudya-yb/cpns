@@ -8,6 +8,7 @@ import { packageRouter } from "./package";
 import { profileRouter } from "./profile";
 import { ratingRouter } from "./rating";
 import { settingsRouter } from "./settings";
+import { leaderboardRouter } from "./leaderboard";
 import { statsRouter } from "./stats";
 
 export const appRouter = router({
@@ -30,6 +31,7 @@ export const appRouter = router({
   rating: ratingRouter,
   settings: settingsRouter,
   stats: statsRouter,
+  leaderboard: leaderboardRouter,
 });
 
 export type AppRouter = typeof appRouter;

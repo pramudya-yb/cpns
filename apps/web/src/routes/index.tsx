@@ -12,7 +12,10 @@ export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const session = await authClient.getSession();
     if (!session.data) {
-      redirect({ to: "/landing", throw: true });
+      throw redirect({ to: "/landing" });
+    }
+    if (!session.data.user.image) {
+      throw redirect({ to: "/setup-avatar" });
     }
     return { session };
   },

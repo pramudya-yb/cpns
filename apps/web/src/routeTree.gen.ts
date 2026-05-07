@@ -9,10 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupAvatarRouteImport } from './routes/setup-avatar'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -27,6 +29,11 @@ import { Route as PackageIdIndexRouteImport } from './routes/package.$id.index'
 import { Route as PackageIdTakeRouteImport } from './routes/package.$id.take'
 import { Route as PackageIdAttemptAttemptIdRouteImport } from './routes/package.$id.attempt.$attemptId'
 
+const SetupAvatarRoute = SetupAvatarRouteImport.update({
+  id: '/setup-avatar',
+  path: '/setup-avatar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -45,6 +52,11 @@ const MeRoute = MeRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LandingRoute = LandingRouteImport.update({
@@ -122,10 +134,12 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/jobs': typeof JobsRoute
   '/landing': typeof LandingRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
+  '/setup-avatar': typeof SetupAvatarRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/package/$id': typeof PackageIdRouteWithChildren
   '/profile/$userId': typeof ProfileUserIdRoute
@@ -141,10 +155,12 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/jobs': typeof JobsRoute
   '/landing': typeof LandingRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
+  '/setup-avatar': typeof SetupAvatarRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
   '/package/$id/take': typeof PackageIdTakeRoute
@@ -160,10 +176,12 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/jobs': typeof JobsRoute
   '/landing': typeof LandingRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/packages': typeof PackagesRoute
   '/settings': typeof SettingsRoute
+  '/setup-avatar': typeof SetupAvatarRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/package/$id': typeof PackageIdRouteWithChildren
   '/profile/$userId': typeof ProfileUserIdRoute
@@ -181,10 +199,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/jobs'
     | '/landing'
+    | '/leaderboard'
     | '/login'
     | '/me'
     | '/packages'
     | '/settings'
+    | '/setup-avatar'
     | '/attempt/$id'
     | '/package/$id'
     | '/profile/$userId'
@@ -200,10 +220,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/jobs'
     | '/landing'
+    | '/leaderboard'
     | '/login'
     | '/me'
     | '/packages'
     | '/settings'
+    | '/setup-avatar'
     | '/attempt/$id'
     | '/profile/$userId'
     | '/package/$id/take'
@@ -218,10 +240,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/jobs'
     | '/landing'
+    | '/leaderboard'
     | '/login'
     | '/me'
     | '/packages'
     | '/settings'
+    | '/setup-avatar'
     | '/attempt/$id'
     | '/package/$id'
     | '/profile/$userId'
@@ -238,10 +262,12 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   JobsRoute: typeof JobsRoute
   LandingRoute: typeof LandingRoute
+  LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
   PackagesRoute: typeof PackagesRoute
   SettingsRoute: typeof SettingsRoute
+  SetupAvatarRoute: typeof SetupAvatarRoute
   AttemptIdRoute: typeof AttemptIdRoute
   PackageIdRoute: typeof PackageIdRouteWithChildren
   ProfileUserIdRoute: typeof ProfileUserIdRoute
@@ -249,6 +275,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup-avatar': {
+      id: '/setup-avatar'
+      path: '/setup-avatar'
+      fullPath: '/setup-avatar'
+      preLoaderRoute: typeof SetupAvatarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -275,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/landing': {
@@ -395,10 +435,12 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   JobsRoute: JobsRoute,
   LandingRoute: LandingRoute,
+  LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
   PackagesRoute: PackagesRoute,
   SettingsRoute: SettingsRoute,
+  SetupAvatarRoute: SetupAvatarRoute,
   AttemptIdRoute: AttemptIdRoute,
   PackageIdRoute: PackageIdRouteWithChildren,
   ProfileUserIdRoute: ProfileUserIdRoute,

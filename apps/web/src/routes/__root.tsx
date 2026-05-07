@@ -38,7 +38,8 @@ function RootComponent() {
     (m) =>
       m.routeId === "/package/$id/take" ||
       m.routeId === "/package/$id/attempt/$attemptId" ||
-      m.routeId === "/login",
+      m.routeId === "/login" ||
+      m.routeId === "/setup-avatar",
   );
   const isLanding = matches.some((m) => m.routeId === "/landing");
 
@@ -53,7 +54,7 @@ function RootComponent() {
         storageKey="labas-theme"
       >
         {isFullScreen ? (
-          <div className="h-screen bg-background text-on-surface flex flex-col overflow-hidden relative">
+          <div className="h-screen bg-background text-on-surface flex flex-col overflow-y-auto relative">
             <Outlet />
           </div>
         ) : isLanding ? (

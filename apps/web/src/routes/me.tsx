@@ -7,6 +7,7 @@ import { Button } from "@labas/ui/components/button";
 import { Input } from "@labas/ui/components/input";
 import { Card, CardContent } from "@labas/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { Avatar } from "@/components/ui/Avatar";
 
 export const Route = createFileRoute("/me")({
   component: MeComponent,
@@ -114,17 +115,12 @@ function MeComponent() {
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 md:gap-6">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[var(--matcha-300)] flex items-center justify-center text-2xl md:text-3xl font-bold text-[var(--matcha-800)] shrink-0">
-                  {session.data?.user.image ? (
-                    <img
-                      src={session.data.user.image}
-                      alt={session.data.user.name}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    (session.data?.user.name?.[0] ?? "?").toUpperCase()
-                  )}
-                </div>
+                <Avatar
+                  src={session.data?.user.image}
+                  name={session.data?.user.name ?? ""}
+                  size="xl"
+                  variant="profile"
+                />
                 <div>
                   <h2 className="text-2xl font-headline font-extrabold text-[var(--clay-black)]">
                     {session.data?.user.name ?? "Pengguna"}
@@ -142,6 +138,21 @@ function MeComponent() {
               </Button>
             </div>
           )}
+          <div className="mt-4 pt-4 border-t-2 border-[var(--oat-border)]">
+            <Link
+              to="/setup-avatar"
+              search={{ redirectTo: "/me" }}
+              className="inline-flex"
+            >
+              <Button
+                variant="outline"
+                className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
+              >
+                <MaterialIcon name="face" className="mr-2" />
+                Ganti Avatar
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
 
