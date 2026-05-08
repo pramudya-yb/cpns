@@ -129,6 +129,109 @@ export const aiRouter = router({
     };
   }),
 
+  tokenUsageHistory: protectedProcedure
+    .input(
+      z.object({
+        period: z.enum(["daily", "weekly", "monthly"]),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const now = new Date();
+
+      let startDate: Date;
+      let dateFormat: (d: Date) => string;
+
+      switch (input.period) {
+        case "daily": {
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 6);
+          startDate.setHours(0, 0, 0, 0);
+          dateFormat = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          break;
+        }
+        case "weekly": {
+          startDate = new Date(now);
+          startDate.setDate(startDate.getDate() - 27);
+          startDate.setHours(0, 0, 0, 0);
+          dateFormat = (d: Date) => {
+            const weekStart = new Date(d);
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            return `${weekStart.getFullYear()}-W${String(Math.ceil(((weekStart.getTime() - new Date(weekStart.getFullYear(), 0, 1).getTime()) / 86400000 + 1) / 7)).padStart(2, "0")}`;
+          };
+          break;
+        }
+        case "monthly": {
+          startDate = new Date(now);
+          startDate.setMonth(startDate.getMonth() - 5);
+          startDate.setDate(1);
+          startDate.setHours(0, 0, 0, 0);
+          dateFormat = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+          break;
+        }
+      }
+
+      const rows = await db
+        .select({
+          date: sql<string>`date_trunc('day', ${generationJob.createdAt})::date`,
+          totalTokens: sql<number>`coalesce(sum(${generationJob.tokensUsed}), 0)`,
+          jobCount: sql<number>`count(*)`,
+        })
+        .from(generationJob)
+        .where(
+          and(
+            eq(generationJob.userId, userId),
+            gte(generationJob.createdAt, startDate),
+          ),
+        )
+        .groupBy(sql`date_trunc('day', ${generationJob.createdAt})::date`)
+        .orderBy(sql`date_trunc('day', ${generationJob.createdAt})::date`);
+
+      const grouped: Record<string, { date: string; totalTokens: number; jobCount: number }> = {};
+
+      for (const row of rows) {
+        const d = new Date(row.date as string);
+        const key = dateFormat(d);
+        if (!grouped[key]) {
+          grouped[key] = { date: key, totalTokens: 0, jobCount: 0 };
+        }
+        grouped[key].totalTokens += Number(row.totalTokens);
+        grouped[key].jobCount += Number(row.jobCount);
+      }
+
+      const labels: { date: string; label: string }[] = [];
+      if (input.period === "daily") {
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          labels.push({ date: dateFormat(d), label: `${d.getDate()}/${d.getMonth() + 1}` });
+        }
+      } else if (input.period === "weekly") {
+        for (let i = 3; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i * 7);
+          const weekStart = new Date(d);
+          weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+          labels.push({ date: dateFormat(weekStart), label: `W${i === 0 ? "Ini" : `${i}`}` });
+        }
+      } else {
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now);
+          d.setMonth(d.getMonth() - i);
+          const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+          labels.push({ date: dateFormat(d), label: `${monthNames[d.getMonth()]} ${d.getFullYear()}` });
+        }
+      }
+
+      const result = labels.map((l) => ({
+        ...l,
+        totalTokens: grouped[l.date]?.totalTokens ?? 0,
+        jobCount: grouped[l.date]?.jobCount ?? 0,
+      }));
+
+      return result;
+    }),
+
   retryJob: protectedProcedure
     .input(z.object({ jobId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
