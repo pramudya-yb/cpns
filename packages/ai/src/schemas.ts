@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // ── Shared Schemas ─────────────────────────────────────────
 
-export const examTypeSchema = z.enum(["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"]);
+export const examTypeSchema = z.enum(["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"]);
 export const sectionTypeSchema = z.enum(["READING", "WRITING", "LISTENING", "SPEAKING"]);
 
 export const questionFormatSchema = z.enum([
@@ -10,6 +10,7 @@ export const questionFormatSchema = z.enum([
   "true_false_not_given",
   "matching_headings",
   "matching_information",
+  "matching_pairs",
   "fill_blank",
   "synonym",
   "grammar_in_context",
@@ -18,6 +19,8 @@ export const questionFormatSchema = z.enum([
   "cloze",
   "reference",
   "author_view",
+  "error_recognition",
+  "text_insertion",
   "kanji_reading",
   "particle_choice",
   "article_case",
@@ -56,6 +59,7 @@ export const baseQuestionSchema = z.object({
   explanation: z.string(),
   difficulty: difficultySchema,
   skillTags: z.array(z.string()).min(1),
+  isCaseSensitive: z.boolean().optional().default(false),
 });
 
 // ── Format-Specific Question Schemas ───────────────────────
@@ -81,6 +85,24 @@ export const matchingInformationQuestionSchema = baseQuestionSchema.extend({
   format: z.literal("matching_information"),
   options: z.array(multipleChoiceOptionSchema),
   correctAnswer: z.string(),
+});
+
+export const matchingPairsQuestionSchema = baseQuestionSchema.extend({
+  format: z.literal("matching_pairs"),
+  options: z.array(matchingPairSchema), // [{left, right}] pairs to match
+  correctAnswer: z.string(), // serialized mapping e.g. "A:1,B:2,C:3"
+});
+
+export const errorRecognitionQuestionSchema = baseQuestionSchema.extend({
+  format: z.literal("error_recognition"),
+  options: z.array(multipleChoiceOptionSchema).min(2).max(6), // error segment choices
+  correctAnswer: z.string(), // key of the segment with error
+});
+
+export const textInsertionQuestionSchema = baseQuestionSchema.extend({
+  format: z.literal("text_insertion"),
+  options: z.array(multipleChoiceOptionSchema).min(2).max(6), // position markers
+  correctAnswer: z.string(), // key of correct position
 });
 
 export const fillBlankQuestionSchema = baseQuestionSchema.extend({
@@ -166,6 +188,7 @@ export const questionSchema = z.discriminatedUnion("format", [
   trueFalseQuestionSchema,
   matchingHeadingsQuestionSchema,
   matchingInformationQuestionSchema,
+  matchingPairsQuestionSchema,
   fillBlankQuestionSchema,
   synonymQuestionSchema,
   grammarInContextQuestionSchema,
@@ -174,6 +197,8 @@ export const questionSchema = z.discriminatedUnion("format", [
   clozeQuestionSchema,
   referenceQuestionSchema,
   authorViewQuestionSchema,
+  errorRecognitionQuestionSchema,
+  textInsertionQuestionSchema,
   kanjiReadingQuestionSchema,
   particleChoiceQuestionSchema,
   articleCaseQuestionSchema,

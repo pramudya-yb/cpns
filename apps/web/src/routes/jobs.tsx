@@ -386,19 +386,24 @@ function RouteComponent() {
                             </p>
                             {"options" in q && Array.isArray(q.options) && q.options.length > 0 && (
                               <div className="space-y-1 mb-2">
-                                {q.options.map((opt: any) => (
-                                  <div
-                                    key={opt.key}
-                                    className={`text-sm px-3 py-1.5 rounded-[var(--radius-md)] border ${
-                                      // opt.key === q.correctAnswer
-                                      //   ? "bg-[var(--matcha-300)]/30 border-[var(--matcha-300)] text-[var(--matcha-800)] font-medium"
-                                      //   : "border-[var(--oat-border)] text-[var(--warm-charcoal)]"
-                                      "border-[var(--oat-border)] text-[var(--warm-charcoal)]"
-                                    }`}
-                                  >
-                                    {opt.key}. {opt.text}
-                                  </div>
-                                ))}
+                                {q.format === "matching_pairs"
+                                  ? q.options.map((opt: any, i: number) => (
+                                      <div
+                                        key={i}
+                                        className="text-sm px-3 py-1.5 rounded-[var(--radius-md)] border border-[var(--oat-border)] text-[var(--warm-charcoal)]"
+                                      >
+                                        {opt.left ?? opt.key}
+                                        {opt.right ? ` → ${opt.right}` : ""}
+                                      </div>
+                                    ))
+                                  : q.options.map((opt: any) => (
+                                      <div
+                                        key={opt.key}
+                                        className="text-sm px-3 py-1.5 rounded-[var(--radius-md)] border border-[var(--oat-border)] text-[var(--warm-charcoal)]"
+                                      >
+                                        {opt.key}. {opt.text}
+                                      </div>
+                                    ))}
                               </div>
                             )}
                             {/* <p className="text-xs text-[var(--warm-charcoal)]">

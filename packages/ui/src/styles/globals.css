@@ -347,4 +347,14 @@
     text-transform: uppercase;
     letter-spacing: 0.0675em;
   }
+
+  [dir="rtl"] {
+    text-align: right;
+  }
+  [dir="rtl"] .flex-row {
+    flex-direction: row-reverse;
+  }
+  [dir="rtl"] .space-x-* {
+    --space-x-reverse: 1;
+  }
 }

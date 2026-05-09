@@ -207,6 +207,7 @@ export const questionRouter = router({
         correctAnswer: z.string(),
         explanation: z.string().optional(),
         difficulty: z.number().min(1).max(5).default(3),
+        isCaseSensitive: z.boolean().default(false),
         skillTags: z.array(z.string()).default([]),
         isPublic: z.boolean().default(false),
       }),

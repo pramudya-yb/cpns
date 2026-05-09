@@ -53,6 +53,7 @@ export const question = pgTable(
     difficulty: integer("difficulty").notNull().default(3),
     // e.g. ["grammar", "vocabulary", "inference", "main_idea", "detail"]
     skillTags: text("skill_tags").array().default([]),
+    isCaseSensitive: boolean("is_case_sensitive").default(false).notNull(),
     source: text("source").notNull().default("manual"), // "ai" | "manual"
     aiModel: text("ai_model"),
     aiPromptUsed: text("ai_prompt_used"),
@@ -253,6 +254,7 @@ export const answer = pgTable(
       .references(() => question.id, { onDelete: "cascade" }),
     userAnswer: text("user_answer"),
     isCorrect: boolean("is_correct"),
+    partialScore: integer("partial_score"), // 0-100 for partial credit formats (ordering, matching)
     timeSpentSec: integer("time_spent_sec"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

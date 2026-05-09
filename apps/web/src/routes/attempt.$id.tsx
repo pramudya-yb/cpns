@@ -412,6 +412,14 @@ function QuestionReviewCard({
                 {userAnswer}
               </span>
             </div>
+            {ans?.partialScore != null && ans?.partialScore < 100 && (
+              <div>
+                <span className="text-[var(--warm-silver)]">Skor Parsial:</span>{" "}
+                <span className="font-semibold text-[var(--lemon-700)]">
+                  {ans.partialScore}%
+                </span>
+              </div>
+            )}
             {(isCorrect === false || isCorrect === null) && (
               <div>
                 <span className="text-[var(--warm-silver)]">Jawaban Benar:</span>{" "}

@@ -4,6 +4,9 @@ export const EXAM_TYPES = [
   { id: "JLPT", name: "JLPT" },
   { id: "HSK", name: "HSK" },
   { id: "GOETHE", name: "German" },
+  { id: "TOPIK", name: "Korean" },
+  { id: "TOAFL", name: "Arabic" },
+  { id: "DELE", name: "Spanish" },
 ];
 
 export const SECTIONS = [
@@ -22,6 +25,11 @@ export const FORMATS = [
   "reference",
   "author_view",
   "matching_headings",
+  "matching_information",
+  "summary_completion",
+  "matching_pairs",
+  "error_recognition",
+  "text_insertion",
   "kanji_reading",
   "particle_choice",
   "article_case",

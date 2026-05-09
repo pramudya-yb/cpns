@@ -17,7 +17,11 @@ TOPICS: ${topics.join(", ")}
 FORMATS TO GENERATE: ${formats.join(", ")}
 
 INSTRUCTIONS:
-- The reading passage must be written in the target language of the exam (${examType === "JLPT" ? "Japanese" : examType === "HSK" ? "Chinese" : examType === "GOETHE" ? "German" : "English"}).
+- The reading passage must be written in the target language of the exam (${examType === "JLPT" ? "Japanese" : examType === "HSK" ? "Chinese" : examType === "GOETHE" ? "German" : examType === "TOPIK" ? "Korean" : examType === "TOAFL" ? "Arabic" : examType === "DELE" ? "Spanish" : "English"}).
+- For Korean (TOPIK): Focus on particles, honorifics (speech levels), and functional grammar.
+- For Arabic (TOAFL): Support RTL text. Focus on I'rab (case endings/vowel changes) and grammar.
+- For Spanish (DELE): Focus on verb conjugation by subject and agreement.
+- For JLPT/TOPIK kanji/hanja: Include reading annotations in format: 漢字(かんじ) for words that have readings.
 - Passage length should be appropriate for the exam type and difficulty.
 - Each question must have:
   * a reading passage (passageText)
@@ -29,6 +33,11 @@ INSTRUCTIONS:
 - Questions should test real comprehension, not just surface-level recall.
 - For multiple choice: always provide 4 options labeled A, B, C, D.
 - Options must be plausible distractors — one clearly correct answer.
+- For matching_pairs: Provide options as an array of {key, text} where key is the left item identifier and text is the left item. correctAnswer should be a serialized mapping like "A:1,B:2,C:3" matching each left key to its right pair.
+- For error_recognition: options are error segments (A, B, C, D) and correctAnswer is the key of the segment containing an error.
+- For text_insertion: options are position markers (A, B, C, D) within the passage where a sentence could be inserted. correctAnswer is the best position key.
+- For sentence_arrangement: Provide options as shuffled fragments in random order. correctAnswer is the correct order as comma-separated keys (e.g. "D,A,C,B").
+- For matching_information: options are information items with key and text. correctAnswer is the correct match as serialized mapping.
 
 OUTPUT FORMAT:
 Return ONLY a valid JSON object with this exact structure (no markdown code blocks, no extra text):

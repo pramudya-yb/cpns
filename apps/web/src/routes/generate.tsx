@@ -25,6 +25,7 @@ import {
   DIFFICULTIES,
   QUESTION_COUNT_PRESETS,
 } from "@/lib/generate-constants";
+import { getDifficultyLabel } from "@/lib/difficulty-mapping";
 import "flag-icons/css/flag-icons.min.css";
 import type { Step } from "react-joyride";
 
@@ -395,18 +396,19 @@ function RouteComponent() {
           {/* Difficulty */}
           <div data-tour="generate-difficulty" className="flex flex-col gap-4">
             <label className="font-headline text-xl font-bold text-[var(--clay-black)]">Tingkat Kesulitan</label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {DIFFICULTIES.map((d, i) => (
                 <button
                   key={d}
                   onClick={() => setDifficulty(i)}
-                  className={`py-4 px-2 rounded-[var(--radius-lg)] text-sm font-semibold transition-all clay-hover min-h-[56px] ${
+                  className={`py-4 px-2 rounded-[var(--radius-lg)] text-sm font-semibold transition-all clay-hover min-h-[56px] flex flex-col items-center ${
                     difficulty === i
                       ? "bg-[var(--clay-black)] text-[var(--pure-white)] clay-shadow"
                       : "bg-[var(--pure-white)] text-[var(--warm-charcoal)] hover:bg-[var(--oat-light)] border-2 border-[var(--oat-border)]"
                   }`}
                 >
-                  {d}
+                  <span>{getDifficultyLabel(examType, i + 1)}</span>
+                  <span className={`text-[10px] mt-0.5 ${difficulty === i ? "text-white/60" : "text-[var(--warm-silver)]"}`}>{d}</span>
                 </button>
               ))}
             </div>
@@ -601,7 +603,7 @@ const generatePageSteps: Step[] = [
   {
     target: "[data-tour='generate-exam-type']",
     title: "Jenis Ujian",
-    content: "Pilih jenis ujian yang ingin kamu latih. Tersedia IELTS, TOEFL, JLPT, HSK, dan Goethe.",
+    content: "Pilih jenis ujian yang ingin kamu latih. Tersedia IELTS, TOEFL, JLPT, HSK, Goethe, TOPIK (Korea), TOAFL (Arab), dan DELE (Spanyol).",
     spotlightPadding: 8,
   },
   {
@@ -619,7 +621,7 @@ const generatePageSteps: Step[] = [
   {
     target: "[data-tour='generate-difficulty']",
     title: "Tingkat Kesulitan",
-    content: "Pilih tingkat kesulitan: Beginner, Intermediate, Academic, atau Expert.",
+    content: "Pilih tingkat kesulitan. Label menyesuaikan dengan jenis ujian yang dipilih (misal: N5-N1 untuk JLPT, Band 4.0-8.0 untuk IELTS).",
     spotlightPadding: 8,
   },
   {

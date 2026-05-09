@@ -4,6 +4,9 @@ export const EXAM_TYPES = [
   { id: "JLPT", name: "JLPT", code: "jp" },
   { id: "HSK", name: "HSK", code: "cn" },
   { id: "GOETHE", name: "Goethe-Zertifikat", code: "de" },
+  { id: "TOPIK", name: "TOPIK", code: "kr" },
+  { id: "TOAFL", name: "TOAFL", code: "sa" },
+  { id: "DELE", name: "DELE", code: "es" },
 ];
 
 export const SECTIONS = [
@@ -12,25 +15,33 @@ export const SECTIONS = [
 ];
 
 export const FORMATS = [
-  { id: "multiple_choice", name: "Multiple Choice", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "true_false_not_given", name: "True / False / Not Given", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "fill_blank", name: "Fill in Blank", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "synonym", name: "Synonym / Vocabulary", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "grammar_in_context", name: "Grammar in Context", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "sentence_completion", name: "Sentence Completion", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "cloze", name: "Cloze Test", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "reference", name: "Reference (Pronoun)", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "author_view", name: "Author's View", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
-  { id: "matching_headings", name: "Matching Headings", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE"] },
+  { id: "multiple_choice", name: "Multiple Choice", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "true_false_not_given", name: "True / False / Not Given", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "fill_blank", name: "Fill in Blank", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "synonym", name: "Synonym / Vocabulary", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "grammar_in_context", name: "Grammar in Context", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "sentence_completion", name: "Sentence Completion", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "cloze", name: "Cloze Test", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "reference", name: "Reference (Pronoun)", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "author_view", name: "Author's View", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "matching_headings", name: "Matching Headings", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "matching_information", name: "Matching Information", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "summary_completion", name: "Summary Completion", allowedExams: ["IELTS", "TOEFL", "JLPT", "HSK", "GOETHE", "TOPIK", "TOAFL", "DELE"] },
+  { id: "matching_pairs", name: "Matching Pairs", allowedExams: ["IELTS", "TOEFL", "GOETHE", "DELE", "TOPIK"] },
+  { id: "error_recognition", name: "Error Recognition", allowedExams: ["TOEFL", "HSK", "TOPIK", "TOAFL"] },
+  { id: "text_insertion", name: "Text Insertion", allowedExams: ["TOEFL", "IELTS"] },
   { id: "kanji_reading", name: "Kanji Reading", allowedExams: ["JLPT"] },
-  { id: "particle_choice", name: "Particle Choice", allowedExams: ["JLPT"] },
-  { id: "article_case", name: "Article / Case", allowedExams: ["GOETHE"] },
-  { id: "character_reading", name: "Character Reading", allowedExams: ["HSK"] },
-  { id: "sentence_arrangement", name: "Sentence Arrangement", allowedExams: ["HSK"] },
+  { id: "particle_choice", name: "Particle / Conjunction Choice", allowedExams: ["JLPT", "TOPIK"] },
+  { id: "article_case", name: "Article / Gender / Agreement", allowedExams: ["GOETHE", "TOAFL", "DELE"] },
+  { id: "character_reading", name: "Character Reading", allowedExams: ["HSK", "TOPIK"] },
+  { id: "sentence_arrangement", name: "Sentence Arrangement", allowedExams: ["HSK", "TOPIK", "DELE", "TOAFL"] },
 ];
 
-export const TOPICS = ["Science & Tech", "Business", "Sociology", "Arts", "History", "Environment", "Health", "Education"];
-export const DIFFICULTIES = ["Beginner", "Intermediate", "Academic", "Expert"];
+export const TOPICS = [
+  "Science & Tech", "Business", "Sociology", "Arts", "History", "Environment", "Health", "Education",
+  "Daily Interaction", "Social Etiquette", "Workplace",
+];
+export const DIFFICULTIES = ["Beginner", "Elementary", "Intermediate", "Advanced", "Expert"];
 
 export const QUESTION_COUNT_PRESETS = [
   { value: 5, label: "5 Soal", desc: "Drill cepat" },

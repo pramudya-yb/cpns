@@ -27,12 +27,15 @@ const FORMATS_WITH_OPTIONS = new Set([
   "multiple_choice",
   "matching_headings",
   "matching_information",
+  "matching_pairs",
   "synonym",
   "grammar_in_context",
   "sentence_completion",
   "summary_completion",
   "cloze",
   "reference",
+  "error_recognition",
+  "text_insertion",
   "kanji_reading",
   "particle_choice",
   "article_case",
@@ -60,7 +63,7 @@ function ensureOptions(
     if (q.format === "multiple_choice" || q.format === "synonym" || q.format === "grammar_in_context" ||
         q.format === "sentence_completion" || q.format === "reference" || q.format === "kanji_reading" ||
         q.format === "particle_choice" || q.format === "article_case" || q.format === "character_reading" ||
-        q.format === "sentence_arrangement") {
+        q.format === "sentence_arrangement" || q.format === "error_recognition" || q.format === "text_insertion") {
       return [
         { key: "A", text: "Option A" },
         { key: "B", text: "Option B" },
@@ -319,6 +322,7 @@ export function getGenericQuestionJsonSchemaDescription(): string {
                   "true_false_not_given",
                   "matching_headings",
                   "matching_information",
+                  "matching_pairs",
                   "fill_blank",
                   "synonym",
                   "grammar_in_context",
@@ -327,6 +331,8 @@ export function getGenericQuestionJsonSchemaDescription(): string {
                   "cloze",
                   "reference",
                   "author_view",
+                  "error_recognition",
+                  "text_insertion",
                   "kanji_reading",
                   "particle_choice",
                   "article_case",
@@ -338,7 +344,7 @@ export function getGenericQuestionJsonSchemaDescription(): string {
               questionText: { type: "string", description: "The question text" },
               options: {
                 type: "array",
-                description: "Required for multiple_choice, synonym, matching_*, reference, kanji_reading, particle_choice, article_case, character_reading, sentence_arrangement, summary_completion, cloze. Optional for others.",
+                description: "Required for multiple_choice, synonym, matching_*, reference, kanji_reading, particle_choice, article_case, character_reading, sentence_arrangement, error_recognition, text_insertion, summary_completion, cloze, matching_pairs. Optional for others.",
                 items: {
                   type: "object",
                   properties: {

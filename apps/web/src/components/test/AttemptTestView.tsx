@@ -6,6 +6,8 @@ import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatTime } from "@/lib/time";
 import { trpc } from "@/utils/trpc";
 import { QuestionInput } from "./QuestionInput";
+import { AccentKeyboard } from "./AccentKeyboard";
+import { parseFurigana } from "@/lib/furigana";
 
 interface AttemptTestViewProps {
   attemptId: string;
@@ -56,6 +58,15 @@ const QuestionCard = memo(function QuestionCard({
     [q.id, sectionResultId, onAnswerChange],
   );
 
+  const handleAccentInsert = useCallback(
+    (char: string) => {
+      onAnswerChange(q.id, sectionResultId, answerValue + char);
+    },
+    [q.id, sectionResultId, answerValue, onAnswerChange],
+  );
+
+  const showAccentKeyboard = q.format === "fill_blank" || q.format === "sentence_completion";
+
   return (
     <div
       id={`question-${q.id}`}
@@ -85,8 +96,8 @@ const QuestionCard = memo(function QuestionCard({
         </button>
       </div>
 
-      <p className="text-[var(--warm-charcoal)] mb-6 font-medium leading-relaxed">
-        {q.questionText}
+      <p className="text-[var(--warm-charcoal)] mb-6 font-medium leading-relaxed" dir={q._isRtl ? "rtl" : undefined}>
+        {q._useFurigana ? parseFurigana(q.questionText) : q.questionText}
       </p>
 
       <div className="pl-0">
@@ -102,6 +113,15 @@ const QuestionCard = memo(function QuestionCard({
           onChange={handleChange}
           disabled={isFinished}
         />
+        {showAccentKeyboard && (
+          <div className="mt-3">
+            <AccentKeyboard
+              examType={q._examType}
+              onInsert={handleAccentInsert}
+              disabled={isFinished}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -144,6 +164,9 @@ export function AttemptTestView({
   const currentSection = pkg.sections[currentSectionIdx];
   const sectionData = attempt?.sections?.[currentSectionIdx];
   const sectionResultId = sectionData?.sectionResultId;
+  const examType: string = pkg.examType ?? "";
+  const isRtl = examType === "TOAFL";
+  const useFurigana = examType === "JLPT" || examType === "TOPIK";
 
   // If user picks an answer before attempt.getById finishes, persist once sectionResultId exists
   const flushKeyRef = useRef<string | null>(null);
@@ -186,9 +209,17 @@ export function AttemptTestView({
     }
   }, [allQuestions]);
 
+  const addQuestionMeta = (q: any) => ({
+    ...q,
+    _examType: examType,
+    _isRtl: isRtl,
+    _useFurigana: useFurigana,
+  });
+
   const activeQuestion = currentSection?.questions?.find(
     (q: any) => q.id === activeQuestionId,
   );
+  const activeQuestionWithMeta = activeQuestion ? addQuestionMeta(activeQuestion) : null;
   const passageToShow =
     activeQuestion?.passageText ??
     currentSection?.questions?.[0]?.passageText ??
@@ -306,8 +337,8 @@ export function AttemptTestView({
                   <span>Section {currentSectionIdx + 1} dari {pkg.sections.length}</span>
                 </div>
               </header>
-              <div className="space-y-6 text-lg leading-relaxed text-[var(--warm-charcoal)] font-body whitespace-pre-wrap">
-                {passageToShow}
+              <div className="space-y-6 text-lg leading-relaxed text-[var(--warm-charcoal)] font-body whitespace-pre-wrap" dir={isRtl ? "rtl" : undefined}>
+                {useFurigana ? parseFurigana(passageToShow) : passageToShow}
               </div>
             </article>
           </section>
@@ -339,16 +370,16 @@ export function AttemptTestView({
               </div>
 
               {/* Active question only */}
-              {activeQuestion ? (
+              {activeQuestionWithMeta ? (
                 <QuestionCard
-                  key={activeQuestion.id}
-                  q={activeQuestion}
+                  key={activeQuestionWithMeta.id}
+                  q={activeQuestionWithMeta}
                   globalIdx={activeGlobalIdx}
-                  answerValue={answers[activeQuestion.id] ?? ""}
+                  answerValue={answers[activeQuestionWithMeta.id] ?? ""}
                   sectionResultId={sectionResultId}
-                  isMarked={isMarked(activeQuestion.id)}
+                  isMarked={isMarked(activeQuestionWithMeta.id)}
                   isFinished={isFinished}
-                  isSubmitting={submittingQId === activeQuestion.id}
+                  isSubmitting={submittingQId === activeQuestionWithMeta.id}
                   onAnswerChange={onAnswerChange}
                   toggleMarkQuestion={toggleMarkQuestion}
                 />

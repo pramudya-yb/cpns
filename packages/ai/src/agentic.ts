@@ -38,6 +38,9 @@ function getTargetLanguage(examType: string): string {
   if (examType === "JLPT") return "Japanese";
   if (examType === "HSK") return "Chinese";
   if (examType === "GOETHE") return "German";
+  if (examType === "TOPIK") return "Korean";
+  if (examType === "TOAFL") return "Arabic";
+  if (examType === "DELE") return "Spanish";
   return "English";
 }
 
@@ -196,6 +199,9 @@ Rules:
 - explanation — WAJIB ditulis dalam Bahasa Indonesia. DILARANG menggunakan bahasa asing.
 - For true_false_not_given: correctAnswer must be exactly TRUE, FALSE, or NOT_GIVEN (uppercase)
 - For author_view: correctAnswer must be exactly YES, NO, or NOT_GIVEN (uppercase)
+- For matching_pairs: options are {key, text} pairs. correctAnswer is serialized mapping like "A:1,B:2".
+- For error_recognition: options are error segments. correctAnswer is key of segment with error.
+- For text_insertion: options are position markers. correctAnswer is best position key.
 
 Question schema:
 ${schema}
@@ -305,6 +311,9 @@ Rules:
 - explanation — WAJIB ditulis dalam Bahasa Indonesia. DILARANG menggunakan bahasa asing.
 - For true_false_not_given: correctAnswer must be TRUE, FALSE, or NOT_GIVEN (uppercase)
 - For author_view: correctAnswer must be YES, NO, or NOT_GIVEN (uppercase)
+- For matching_pairs: options are {key, text} pairs. correctAnswer is serialized mapping.
+- For error_recognition: options are error segments. correctAnswer is key of segment with error.
+- For text_insertion: options are position markers. correctAnswer is best position key.
 
 Question schema:
 ${schema}

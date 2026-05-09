@@ -60,17 +60,35 @@ export function ResultSection({ result, generatedPackageId }: ResultSectionProps
             <p className="font-medium text-[var(--clay-black)] text-lg">{q.questionText}</p>
             {"options" in q && q.options && (
               <div className="space-y-2">
-                {q.options.map((opt) => (
-                  <div
-                    key={opt.key}
-                    className="flex items-center p-4 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--oat-light)]"
-                  >
-                    <span className="w-6 h-6 rounded-full border-2 border-[var(--oat-border)] flex items-center justify-center mr-3 text-xs font-bold text-[var(--warm-charcoal)]">
-                      {opt.key}
-                    </span>
-                    <span className="text-[var(--clay-black)]">{opt.text}</span>
-                  </div>
-                ))}
+                {q.format === "matching_pairs"
+                  ? q.options.map((opt: { left: string; right?: string }, i: number) => (
+                      <div
+                        key={i}
+                        className="flex items-center p-4 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--oat-light)]"
+                      >
+                        <span className="w-6 h-6 rounded-full border-2 border-[var(--oat-border)] flex items-center justify-center mr-3 text-xs font-bold text-[var(--warm-charcoal)]">
+                          {opt.left?.charAt(0)?.toUpperCase() ?? i + 1}
+                        </span>
+                        <span className="text-[var(--clay-black)]">{opt.left}</span>
+                        {opt.right && (
+                          <>
+                            <span className="mx-3 text-[var(--warm-silver)]">→</span>
+                            <span className="text-[var(--matcha-700)] font-medium">{opt.right}</span>
+                          </>
+                        )}
+                      </div>
+                    ))
+                  : q.options.map((opt: { key: string; text: string }) => (
+                      <div
+                        key={opt.key}
+                        className="flex items-center p-4 rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] bg-[var(--oat-light)]"
+                      >
+                        <span className="w-6 h-6 rounded-full border-2 border-[var(--oat-border)] flex items-center justify-center mr-3 text-xs font-bold text-[var(--warm-charcoal)]">
+                          {opt.key}
+                        </span>
+                        <span className="text-[var(--clay-black)]">{opt.text}</span>
+                      </div>
+                    ))}
               </div>
             )}
             <div className="flex gap-2 flex-wrap">
