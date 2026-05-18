@@ -1,4 +1,5 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
+import { adminRouter } from "./admin";
 import { aiRouter } from "./ai";
 import { attemptRouter } from "./attempt";
 import { comboRouter } from "./combo";
@@ -22,6 +23,7 @@ export const appRouter = router({
       user: ctx.session.user,
     };
   }),
+  admin: adminRouter,
   ai: aiRouter,
   attempt: attemptRouter,
   combo: comboRouter,

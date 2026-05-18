@@ -36,13 +36,15 @@ function HomeComponent() {
   const recentAttempts = useQuery(
     trpc.attempt.myAttempts.queryOptions({ limit: 5, offset: 0 }),
   );
-  const featuredPackages = useQuery(
-    trpc.package.list.queryOptions({ isPublic: true, limit: 3 }),
+  const featured = useQuery(
+    trpc.admin.listFeatured.queryOptions(),
   );
 
   const stats = overview.data;
   const attempts = recentAttempts.data?.attempts ?? [];
-  const featured = featuredPackages.data?.packages ?? [];
+  const featuredPkg = featured.data?.packages ?? [];
+  const featuredQ = featured.data?.questions ?? [];
+  const hasFeatured = featuredPkg.length > 0 || featuredQ.length > 0;
 
   const isNewUser = !stats || (stats.completedAttempts === 0 && stats.totalQuestionsAnswered === 0);
 
@@ -199,19 +201,22 @@ function HomeComponent() {
         </Link>
       </div>
 
-      {/* Featured Packages */}
-      {featured.length > 0 && (
+      {/* Editor's Pick */}
+      {hasFeatured && (
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-headline font-bold text-[var(--clay-black)]">
-              Paket Unggulan
-            </h2>
+            <div className="flex items-center gap-2">
+              <MaterialIcon name="star" className="text-[var(--sunbeam-600)]" />
+              <h2 className="text-xl font-headline font-bold text-[var(--clay-black)]">
+                Editor's Pick
+              </h2>
+            </div>
             <Link to="/packages" className="text-sm text-[var(--matcha-600)] font-semibold hover:underline">
               Lihat Semua
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {featured.map((pkg) => (
+            {featuredPkg.slice(0, 3).map((pkg: any) => (
               <Link key={pkg.id} to="/package/$id" params={{ id: pkg.id }} className="block">
                 <Card className="clay-shadow clay-hover bg-[var(--pure-white)] border-2 border-[var(--oat-border)] rounded-[var(--radius-xl)] h-full transition-all hover:border-[var(--matcha-400)]">
                   <CardContent className="p-5">

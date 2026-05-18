@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, desc, and, gte, sql } from "drizzle-orm";
 import { router, protectedProcedure } from "../index";
-import { generationInputSchema } from "@labas/ai/schemas";
+import { type GenerationInput, generationInputSchema } from "@labas/ai/schemas";
 import { cancelGenerationJob, enqueueGeneration } from "../queue";
 import { db } from "@labas/db";
 import { question, generationJob } from "@labas/db";
@@ -9,8 +9,14 @@ import { paginationSchema, paginateDefaults } from "../lib/pagination";
 import { throwNotFound, throwForbidden, throwBadRequest } from "../lib/errors";
 import { checkDailyBudget } from "../lib/rate-limit";
 import { decryptApiKey } from "../lib/encryption";
+import { isUserSuspended, getUserCredit, autoRefillIfEligible } from "../lib/credit";
+import { env } from "@labas/env/server";
 
 const DAILY_TOKEN_BUDGET = 500_000;
+
+const generateInputSchema = generationInputSchema.extend({
+  apiKeyConfig: generationInputSchema.shape.apiKeyConfig.optional(),
+});
 
 function sanitizeJobForResponse(row: typeof generationJob.$inferSelect) {
   const { inputJson, ...safe } = row;
@@ -19,13 +25,47 @@ function sanitizeJobForResponse(row: typeof generationJob.$inferSelect) {
 
 export const aiRouter = router({
   generate: protectedProcedure
-    .input(generationInputSchema)
+    .input(generateInputSchema)
     .mutation(async ({ ctx, input }) => {
+      const suspended = await isUserSuspended(ctx.session.user.id);
+      if (suspended) throwForbidden("Account is suspended");
+
+      const hasApiKey = !!input.apiKeyConfig?.apiKey;
+      let resolvedInput: GenerationInput;
+
+      if (!hasApiKey) {
+        if (!env.FREE_CREDITS_ENABLED) {
+          throwBadRequest("Free credits are currently disabled. Use BYOK or contact admin.");
+        }
+        if (!env.PLATFORM_AI_API_KEY) {
+          throwBadRequest("Platform AI is not configured. Add your own API key in Settings.");
+        }
+        const credit = await getUserCredit(ctx.session.user.id);
+        if (credit.tokenBalance <= 0) {
+          const refill = await autoRefillIfEligible(ctx.session.user.id);
+          if (!refill.refilled) {
+            throwBadRequest(refill.message);
+          }
+        }
+        resolvedInput = {
+          ...input,
+          apiKeyConfig: {
+            baseUrl: env.PLATFORM_AI_BASE_URL || "https://api.openai.com/v1",
+            apiKey: env.PLATFORM_AI_API_KEY,
+            model: env.PLATFORM_AI_MODEL || "gpt-4o-mini",
+            maxTokens: 4096,
+          },
+          _isPlatformGeneration: true,
+        } as GenerationInput;
+      } else {
+        resolvedInput = input as GenerationInput;
+      }
+
       const withinBudget = await checkDailyBudget(ctx.session.user.id, DAILY_TOKEN_BUDGET);
       if (!withinBudget) {
         throwBadRequest(`Daily token budget (${DAILY_TOKEN_BUDGET.toLocaleString()}) exceeded. Try again tomorrow.`);
       }
-      const jobId = await enqueueGeneration(ctx.session.user.id, input);
+      const jobId = await enqueueGeneration(ctx.session.user.id, resolvedInput);
       return { jobId };
     }),
 

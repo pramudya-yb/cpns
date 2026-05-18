@@ -23,10 +23,17 @@ import { Route as GenerateRouteImport } from './routes/generate'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as BankRouteImport } from './routes/bank'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProfileUserIdRouteImport } from './routes/profile.$userId'
 import { Route as PackageIdRouteImport } from './routes/package.$id'
 import { Route as AttemptIdRouteImport } from './routes/attempt.$id'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
+import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
+import { Route as AdminFeaturedRouteImport } from './routes/admin.featured'
+import { Route as AdminCreditsRouteImport } from './routes/admin.credits'
 import { Route as PackageIdIndexRouteImport } from './routes/package.$id.index'
 import { Route as PackageIdTakeRouteImport } from './routes/package.$id.take'
 import { Route as PackageIdAttemptAttemptIdRouteImport } from './routes/package.$id.attempt.$attemptId'
@@ -101,10 +108,20 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
   id: '/profile/$userId',
@@ -120,6 +137,31 @@ const AttemptIdRoute = AttemptIdRouteImport.update({
   id: '/attempt/$id',
   path: '/attempt/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminModerationRoute = AdminModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminJobsRoute = AdminJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFeaturedRoute = AdminFeaturedRouteImport.update({
+  id: '/featured',
+  path: '/featured',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCreditsRoute = AdminCreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
+  getParentRoute: () => AdminRoute,
 } as any)
 const PackageIdIndexRoute = PackageIdIndexRouteImport.update({
   id: '/',
@@ -140,6 +182,7 @@ const PackageIdAttemptAttemptIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/analytics': typeof AnalyticsRoute
   '/bank': typeof BankRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -154,9 +197,15 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/setup-avatar': typeof SetupAvatarRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/credits': typeof AdminCreditsRoute
+  '/admin/featured': typeof AdminFeaturedRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/moderation': typeof AdminModerationRoute
+  '/admin/users': typeof AdminUsersRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/package/$id': typeof PackageIdRouteWithChildren
   '/profile/$userId': typeof ProfileUserIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/package/$id/take': typeof PackageIdTakeRoute
   '/package/$id/': typeof PackageIdIndexRoute
   '/package/$id/attempt/$attemptId': typeof PackageIdAttemptAttemptIdRoute
@@ -177,8 +226,14 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/setup-avatar': typeof SetupAvatarRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/credits': typeof AdminCreditsRoute
+  '/admin/featured': typeof AdminFeaturedRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/moderation': typeof AdminModerationRoute
+  '/admin/users': typeof AdminUsersRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/profile/$userId': typeof ProfileUserIdRoute
+  '/admin': typeof AdminIndexRoute
   '/package/$id/take': typeof PackageIdTakeRoute
   '/package/$id': typeof PackageIdIndexRoute
   '/package/$id/attempt/$attemptId': typeof PackageIdAttemptAttemptIdRoute
@@ -186,6 +241,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/analytics': typeof AnalyticsRoute
   '/bank': typeof BankRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -200,9 +256,15 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/setup-avatar': typeof SetupAvatarRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/credits': typeof AdminCreditsRoute
+  '/admin/featured': typeof AdminFeaturedRoute
+  '/admin/jobs': typeof AdminJobsRoute
+  '/admin/moderation': typeof AdminModerationRoute
+  '/admin/users': typeof AdminUsersRoute
   '/attempt/$id': typeof AttemptIdRoute
   '/package/$id': typeof PackageIdRouteWithChildren
   '/profile/$userId': typeof ProfileUserIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/package/$id/take': typeof PackageIdTakeRoute
   '/package/$id/': typeof PackageIdIndexRoute
   '/package/$id/attempt/$attemptId': typeof PackageIdAttemptAttemptIdRoute
@@ -211,6 +273,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/analytics'
     | '/bank'
     | '/forgot-password'
@@ -225,9 +288,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/setup-avatar'
     | '/verify-email'
+    | '/admin/credits'
+    | '/admin/featured'
+    | '/admin/jobs'
+    | '/admin/moderation'
+    | '/admin/users'
     | '/attempt/$id'
     | '/package/$id'
     | '/profile/$userId'
+    | '/admin/'
     | '/package/$id/take'
     | '/package/$id/'
     | '/package/$id/attempt/$attemptId'
@@ -248,14 +317,21 @@ export interface FileRouteTypes {
     | '/settings'
     | '/setup-avatar'
     | '/verify-email'
+    | '/admin/credits'
+    | '/admin/featured'
+    | '/admin/jobs'
+    | '/admin/moderation'
+    | '/admin/users'
     | '/attempt/$id'
     | '/profile/$userId'
+    | '/admin'
     | '/package/$id/take'
     | '/package/$id'
     | '/package/$id/attempt/$attemptId'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/analytics'
     | '/bank'
     | '/forgot-password'
@@ -270,9 +346,15 @@ export interface FileRouteTypes {
     | '/settings'
     | '/setup-avatar'
     | '/verify-email'
+    | '/admin/credits'
+    | '/admin/featured'
+    | '/admin/jobs'
+    | '/admin/moderation'
+    | '/admin/users'
     | '/attempt/$id'
     | '/package/$id'
     | '/profile/$userId'
+    | '/admin/'
     | '/package/$id/take'
     | '/package/$id/'
     | '/package/$id/attempt/$attemptId'
@@ -280,6 +362,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AnalyticsRoute: typeof AnalyticsRoute
   BankRoute: typeof BankRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -399,12 +482,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/profile/$userId': {
       id: '/profile/$userId'
@@ -426,6 +523,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/attempt/$id'
       preLoaderRoute: typeof AttemptIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/moderation': {
+      id: '/admin/moderation'
+      path: '/moderation'
+      fullPath: '/admin/moderation'
+      preLoaderRoute: typeof AdminModerationRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/jobs': {
+      id: '/admin/jobs'
+      path: '/jobs'
+      fullPath: '/admin/jobs'
+      preLoaderRoute: typeof AdminJobsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/featured': {
+      id: '/admin/featured'
+      path: '/featured'
+      fullPath: '/admin/featured'
+      preLoaderRoute: typeof AdminFeaturedRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/credits': {
+      id: '/admin/credits'
+      path: '/credits'
+      fullPath: '/admin/credits'
+      preLoaderRoute: typeof AdminCreditsRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/package/$id/': {
       id: '/package/$id/'
@@ -451,6 +583,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminCreditsRoute: typeof AdminCreditsRoute
+  AdminFeaturedRoute: typeof AdminFeaturedRoute
+  AdminJobsRoute: typeof AdminJobsRoute
+  AdminModerationRoute: typeof AdminModerationRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCreditsRoute: AdminCreditsRoute,
+  AdminFeaturedRoute: AdminFeaturedRoute,
+  AdminJobsRoute: AdminJobsRoute,
+  AdminModerationRoute: AdminModerationRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface PackageIdRouteChildren {
   PackageIdTakeRoute: typeof PackageIdTakeRoute
   PackageIdIndexRoute: typeof PackageIdIndexRoute
@@ -469,6 +621,7 @@ const PackageIdRouteWithChildren = PackageIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AnalyticsRoute: AnalyticsRoute,
   BankRoute: BankRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,

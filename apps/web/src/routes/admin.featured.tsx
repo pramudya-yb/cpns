@@ -1,0 +1,198 @@
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { trpc } from "@/utils/trpc";
+import { Input } from "@labas/ui/components/input";
+import { Button } from "@labas/ui/components/button";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/admin/featured")({
+  component: AdminFeatured,
+});
+
+type Tab = "featured" | "packages" | "questions";
+
+function AdminFeatured() {
+  const [tab, setTab] = useState<Tab>("featured");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const limit = 15;
+  const queryClient = useQueryClient();
+
+  const featured = useQuery(trpc.admin.listFeatured.queryOptions());
+  const fPackages = featured.data?.packages ?? [];
+  const fQuestions = featured.data?.questions ?? [];
+
+  const searchQuery = useQuery(
+    trpc.admin.searchContent.queryOptions(
+      { search: debouncedSearch, type: tab === "packages" ? "packages" : "questions", limit, offset: (page - 1) * limit },
+      { enabled: tab !== "featured" },
+    ),
+  );
+
+  const togglePkgMutation = useMutation(
+    trpc.admin.toggleFeaturedPackage.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.admin.listFeatured.queryKey() });
+        queryClient.invalidateQueries({ queryKey: trpc.admin.searchContent.queryKey() });
+        toast.success("Package updated");
+      },
+      onError: (e: any) => toast.error(e.message),
+    }),
+  );
+
+  const toggleQMutation = useMutation(
+    trpc.admin.toggleFeaturedQuestion.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.admin.listFeatured.queryKey() });
+        queryClient.invalidateQueries({ queryKey: trpc.admin.searchContent.queryKey() });
+        toast.success("Question updated");
+      },
+      onError: (e: any) => toast.error(e.message),
+    }),
+  );
+
+  function handleSearch(val: string) {
+    setSearch(val);
+    const t = (window as any).__ft;
+    if (t) clearTimeout(t);
+    (window as any).__ft = setTimeout(() => {
+      setDebouncedSearch(val);
+      setPage(1);
+    }, 300);
+  }
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "featured", label: "Currently Featured" },
+    { key: "packages", label: "Browse Packages" },
+    { key: "questions", label: "Browse Questions" },
+  ];
+
+  return (
+    <div>
+      <h1 className="text-3xl font-headline font-bold text-[var(--clay-black)] mb-2">Editor's Pick</h1>
+      <p className="text-[var(--warm-charcoal)] mb-6">Curate featured content for the homepage.</p>
+
+      <div className="flex gap-2 mb-6 border-b border-[var(--oat-border)] pb-0">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => { setTab(t.key); setSearch(""); setDebouncedSearch(""); setPage(1); }}
+            className={`px-4 py-2.5 text-sm font-medium rounded-t-[var(--radius-lg)] transition-colors ${
+              tab === t.key
+                ? "bg-[var(--pure-white)] text-[var(--clay-black)] border border-[var(--oat-border)] border-b-[var(--pure-white)] -mb-[1px]"
+                : "text-[var(--warm-charcoal)] hover:text-[var(--clay-black)]"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "featured" && (
+        <div className="space-y-8">
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-lg font-headline font-bold text-[var(--clay-black)]">Featured Packages</h2>
+              <span className="text-sm text-[var(--warm-charcoal)]">({fPackages.length})</span>
+            </div>
+            {fPackages.length === 0 ? (
+              <p className="text-sm text-[var(--warm-charcoal)] py-4">No featured packages. Browse and select from the tabs above.</p>
+            ) : (
+              <div className="space-y-2">
+                {fPackages.map((pkg: any) => (
+                  <div key={pkg.id} className="flex items-center justify-between bg-[var(--pure-white)] border border-[var(--oat-border)] rounded-[var(--radius-lg)] px-4 py-3">
+                    <div>
+                      <p className="font-medium text-[var(--clay-black)]">{pkg.title}</p>
+                      <p className="text-xs text-[var(--warm-charcoal)]">{pkg.examTypeId}</p>
+                    </div>
+                    <Button variant="outline" onClick={() => togglePkgMutation.mutate({ packageId: pkg.id })} disabled={togglePkgMutation.isPending} className="h-9 rounded-[var(--radius-lg)] text-xs">Unfeature</Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-lg font-headline font-bold text-[var(--clay-black)]">Featured Questions</h2>
+              <span className="text-sm text-[var(--warm-charcoal)]">({fQuestions.length})</span>
+            </div>
+            {fQuestions.length === 0 ? (
+              <p className="text-sm text-[var(--warm-charcoal)] py-4">No featured questions.</p>
+            ) : (
+              <div className="space-y-2">
+                {fQuestions.map((q: any) => (
+                  <div key={q.id} className="flex items-center justify-between bg-[var(--pure-white)] border border-[var(--oat-border)] rounded-[var(--radius-lg)] px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[var(--clay-black)] truncate">{q.questionText}</p>
+                      <p className="text-xs text-[var(--warm-charcoal)]">{q.format} · {q.examTypeId}</p>
+                    </div>
+                    <Button variant="outline" className="shrink-0 ml-4 h-9 rounded-[var(--radius-lg)] text-xs" onClick={() => toggleQMutation.mutate({ questionId: q.id })} disabled={toggleQMutation.isPending}>Unfeature</Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      {tab !== "featured" && (
+        <div>
+          <Input
+            placeholder={`Search ${tab}...`}
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="max-w-md mb-4"
+          />
+
+          {searchQuery.isLoading ? (
+            <p className="text-sm text-[var(--warm-charcoal)] py-8 text-center">Searching...</p>
+          ) : (
+            <>
+              <p className="text-sm text-[var(--warm-charcoal)] mb-3">
+                {debouncedSearch ? `${searchQuery.data?.total ?? 0} results for "${debouncedSearch}"` : `Showing ${searchQuery.data?.total ?? 0} ${tab}`}
+              </p>
+              <div className="space-y-2">
+                {(searchQuery.data?.items ?? []).map((item: any) => (
+                  <div key={item.id} className="flex items-center justify-between bg-[var(--pure-white)] border border-[var(--oat-border)] rounded-[var(--radius-lg)] px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[var(--clay-black)] truncate">
+                        {tab === "packages" ? item.title : item.questionText}
+                      </p>
+                      <p className="text-xs text-[var(--warm-charcoal)]">
+                        {tab === "packages" ? item.examTypeId : `${item.format} · ${item.examTypeId}`}
+                        {item.isFeatured && (
+                          <span className="ml-2 text-xs font-semibold px-1.5 py-0.5 rounded-full bg-[var(--sunbeam-300)] text-[var(--sunbeam-800)]">Featured</span>
+                        )}
+                      </p>
+                    </div>
+                    <Button
+                      variant={item.isFeatured ? "outline" : "default"}
+                      className="shrink-0 ml-4 h-9 rounded-[var(--radius-lg)] text-xs"
+                      onClick={() => {
+                        if (tab === "packages") togglePkgMutation.mutate({ packageId: item.id });
+                        else toggleQMutation.mutate({ questionId: item.id });
+                      }}
+                      disabled={togglePkgMutation.isPending || toggleQMutation.isPending}
+                    >
+                      {item.isFeatured ? "Unfeature" : "Feature"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              {searchQuery.data && (searchQuery.data.total as number) > limit && (
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
+                  <span className="text-sm text-[var(--warm-charcoal)]">Page {page} of {Math.ceil((searchQuery.data.total as number) / limit)}</span>
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page * limit >= (searchQuery.data.total as number)}>Next</Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

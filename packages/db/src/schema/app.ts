@@ -61,6 +61,7 @@ export const question = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     isPublic: boolean("is_public").default(false).notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(),
     usageCount: integer("usage_count").default(0).notNull(),
     avgRating: integer("avg_rating"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

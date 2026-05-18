@@ -41,7 +41,8 @@ function RootComponent() {
       m.routeId === "/login" ||
       m.routeId === "/setup-avatar" ||
       m.routeId === "/verify-email" ||
-      m.routeId === "/forgot-password",
+      m.routeId === "/forgot-password" ||
+      m.routeId.startsWith("/admin"),
   );
   const isLanding = matches.some((m) => m.routeId === "/landing");
 

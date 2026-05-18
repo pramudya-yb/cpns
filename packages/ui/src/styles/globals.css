@@ -17,7 +17,11 @@
   --warm-cream: #faf9f7;
 
   /* Swatch Palette */
+  --matcha-50: #f2fcf6;
+  --matcha-100: #e3f9ec;
   --matcha-300: #84e7a5;
+  --matcha-400: #5ac889;
+  --matcha-500: #31a96e;
   --matcha-600: #078a52;
   --matcha-700: #047a3f;
   --matcha-800: #02492a;
@@ -240,7 +244,11 @@
   --color-tertiary-fixed-dim: var(--tertiary-fixed-dim);
 
   /* Swatch colors */
+  --color-matcha-50: var(--matcha-50);
+  --color-matcha-100: var(--matcha-100);
   --color-matcha-300: var(--matcha-300);
+  --color-matcha-400: var(--matcha-400);
+  --color-matcha-500: var(--matcha-500);
   --color-matcha-600: var(--matcha-600);
   --color-matcha-800: var(--matcha-800);
   --color-slushie-500: var(--slushie-500);

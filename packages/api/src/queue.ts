@@ -1,6 +1,11 @@
 import { Queue, Worker, type Job } from "bullmq";
 import IORedis from "ioredis";
 import { env } from "@labas/env/server";
+
+async function log(level: "debug" | "warn", message: string, meta?: Record<string, unknown>) {
+  const mod = await import("@labas/api/logger");
+  (mod.logger as any)[level](message, meta);
+}
 import {
   generateQuestionsQuick,
   generateQuestionsAgentic,
@@ -365,6 +370,20 @@ async function completeJobWithResult(params: {
         notInArray(generationJob.status, ["cancelled"]),
       ),
     );
+
+  // Deduct from user credit if using platform generation
+  const inputAny = params.input as any;
+  if (inputAny._isPlatformGeneration && params.totalTokens > 0) {
+    const [jobRow] = await db
+      .select({ userId: generationJob.userId })
+      .from(generationJob)
+      .where(eq(generationJob.id, params.jobId))
+      .limit(1);
+    if (jobRow) {
+      const { deductCredit } = await import("@labas/api/lib/credit");
+      await deductCredit(jobRow.userId, params.totalTokens).catch(() => {});
+    }
+  }
 }
 
 export type CancelGenerationJobResult =
@@ -419,11 +438,11 @@ export async function cancelGenerationJob(
         try {
           await bullJob.remove();
         } catch {
-          // Likely active; worker exits cooperatively.
+          log("debug", "[QUEUE] Could not remove active job.", { jobId });
         }
       }
     } catch {
-      // Ignore queue hiccups.
+      log("warn", "[QUEUE] Failed to access queue during cancellation.", { jobId });
     }
   }
 
@@ -699,6 +718,7 @@ export const generationWorker = new Worker<FastJobData>(
         try {
           await runShard(shard);
         } catch {
+          log("warn", "[GENERATION] Fast shard failed.", { jobId, section: shard.section });
           failedShards.push(shard);
         }
       });
@@ -957,6 +977,7 @@ export const generationQualityWorker = new Worker<QualityJobData>(
               tokensUsed: result.meta.tokensUsed ?? 0,
             };
           } catch {
+            log("warn", "[GENERATION] Quality phase failed, using fast questions.", { jobId, section: split.section });
             const fallbackQuestions = fastQuestions
               .filter((q) => q.section === split.section)
               .slice(0, split.count);
@@ -1125,7 +1146,7 @@ export function decryptInputFromDb(inputJson: unknown): GenerationInput {
         },
       };
     } catch {
-      // If decryption fails, key was likely stored unencrypted (legacy data)
+      log("debug", "[QUEUE] API key decryption failed (legacy data).");
       return data as unknown as GenerationInput;
     }
   }

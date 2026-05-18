@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/utils/trpc";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { triggerGlobalTour } from "@/components/TourGuide";
 
@@ -89,6 +91,11 @@ export function Sidebar() {
   const { data: session } = authClient.useSession();
   const isLoggedIn = !!session;
 
+  const { data: adminData } = useQuery(
+    trpc.admin.isAdmin.queryOptions(undefined, { enabled: isLoggedIn }),
+  );
+  const isAdmin = !!adminData?.isAdmin;
+
   async function handleSignOut() {
     await authClient.signOut();
     navigate({ to: "/landing" });
@@ -141,6 +148,24 @@ export function Sidebar() {
               })}
             </div>
           ))}
+
+          {isAdmin && (
+            <div className="space-y-1 pt-2 border-t border-[var(--matcha-400)]/30">
+              {!collapsed && (
+                <p className="px-3 text-[10px] font-bold text-[var(--matcha-600)] uppercase tracking-wider">
+                  Admin
+                </p>
+              )}
+              {[{ to: "/admin", label: "Admin Panel", icon: "admin_panel_settings" }].map((item) => {
+                const isActive =
+                  location.pathname === item.to ||
+                  (location.pathname.startsWith(`${item.to}/`) && item.to !== "/");
+                return (
+                  <NavLink key={item.to} item={item} isActive={isActive} collapsed={collapsed} />
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         <div className="mt-auto space-y-1 pt-4 border-t border-[var(--oat-border)] w-full">

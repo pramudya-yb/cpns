@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
@@ -56,6 +56,13 @@ function RouteComponent() {
   }, [configs, selectedKeyId]);
 
   const selectedConfig = configs.find((c) => c.id === selectedKeyId);
+  const [useFreeCredits, setUseFreeCredits] = useState(false);
+
+  const myCredit = useQuery(
+    trpc.admin.getMyCredit.queryOptions(),
+  );
+  const hasFreeCredits = myCredit.data?.freeCreditsEnabled === true;
+  const tokenBalance = myCredit.data?.tokenBalance ?? 0;
 
   const {
     activeCount,
@@ -162,8 +169,8 @@ function RouteComponent() {
   };
 
   const handleGenerate = () => {
-    if (!hasConfigs || !selectedConfig) {
-      setError("API key belum dikonfigurasi. Tambahkan di Settings.");
+    if (!useFreeCredits && (!hasConfigs || !selectedConfig)) {
+      setError("API key belum dikonfigurasi. Tambahkan di Settings atau gunakan kredit gratis.");
       return;
     }
     if (selectedSections.length === 0) {
@@ -175,6 +182,15 @@ function RouteComponent() {
       return;
     }
 
+    const apiKeyConfig = useFreeCredits
+      ? undefined
+      : {
+          baseUrl: selectedConfig!.baseUrl,
+          apiKey: selectedConfig!.apiKey,
+          model: selectedConfig!.modelName,
+          maxTokens: selectedConfig!.maxTokens ?? 16384,
+        };
+
     generate.mutate({
       examType: examType as any,
       section: selectedSections[0] as any,
@@ -184,13 +200,8 @@ function RouteComponent() {
       topics: selectedTopics,
       questionCount,
       mode,
-      apiKeyConfig: {
-        baseUrl: selectedConfig.baseUrl,
-        apiKey: selectedConfig.apiKey,
-        model: selectedConfig.modelName,
-        maxTokens: selectedConfig.maxTokens ?? 16384,
-      },
-    });
+      apiKeyConfig,
+    } as any);
   };
 
   const sectionSplits = (() => {
@@ -233,7 +244,7 @@ function RouteComponent() {
         </div>
       </section>
 
-      {!hasConfigs && (
+      {!hasConfigs && !useFreeCredits && !hasFreeCredits && (
         <div className="mb-8 p-4 rounded-[var(--radius-lg)] bg-[var(--badge-blue-bg)] text-[var(--badge-blue-text)] text-sm flex items-center gap-3 border-2 border-[var(--badge-blue-bg)]">
           <MaterialIcon name="warning" />
           <span>API key belum dikonfigurasi.</span>
@@ -243,39 +254,139 @@ function RouteComponent() {
         </div>
       )}
 
-      {hasConfigs && (
-        <div className="mb-8 p-4 rounded-[var(--radius-lg)] bg-[var(--pure-white)] border-2 border-[var(--oat-border)]">
-          <label className="text-sm font-medium text-[var(--clay-black)] mb-2 block">
-            Provider / API Key
-          </label>
-          <div className="flex gap-3">
-            <Select value={selectedKeyId} onValueChange={(v) => v && setSelectedKeyId(v)}>
-              <SelectTrigger className="flex-1 h-11">
-                <SelectValue>
-                  {selectedConfig ? `${selectedConfig.name} · ${selectedConfig.modelName}` : "Pilih provider..."}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {configs.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name} · {c.modelName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Link to="/settings">
-              <Button
-                variant="outline"
-                size="xl"
-                className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover"
-              >
-                <MaterialIcon name="settings" className="mr-1" />
-                Kelola
-              </Button>
-            </Link>
-          </div>
+      {!hasConfigs && !useFreeCredits && hasFreeCredits && (
+        <div className="mb-8 p-4 rounded-[var(--radius-lg)] bg-[var(--matcha-300)]/30 text-[var(--matcha-800)] text-sm flex items-center gap-3 border-2 border-[var(--matcha-400)]">
+          <MaterialIcon name="tips_and_updates" />
+          <span>Belum ada API key. Kamu bisa pakai Free Credits!</span>
+          <button onClick={() => setUseFreeCredits(true)} className="font-semibold underline">
+            Gunakan Free Credits →
+          </button>
         </div>
       )}
+
+      <div className="mb-8 p-5 rounded-[var(--radius-xl)] bg-[var(--pure-white)] border-2 border-[var(--oat-border)]">
+        <div className="flex items-center justify-between mb-3">
+          <label className="text-sm font-medium text-[var(--clay-black)]">Generation Mode</label>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => { setUseFreeCredits(false); }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius-lg)] text-sm font-medium transition-all ${
+              !useFreeCredits
+                ? "bg-[var(--clay-black)] text-[var(--pure-white)]"
+                : "bg-[var(--oat-light)] text-[var(--warm-charcoal)] hover:bg-[var(--oat-border)]"
+            }`}
+          >
+            <MaterialIcon name="vpn_key" className="text-sm" />
+            BYOK
+          </button>
+          {hasFreeCredits && (
+            <button
+              onClick={() => { setUseFreeCredits(true); }}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius-lg)] text-sm font-medium transition-all ${
+                useFreeCredits
+                  ? "bg-[var(--clay-black)] text-[var(--pure-white)]"
+                  : "bg-[var(--oat-light)] text-[var(--warm-charcoal)] hover:bg-[var(--oat-border)]"
+              }`}
+            >
+              <MaterialIcon name="stars" className="text-sm" />
+              Free Credits
+            </button>
+          )}
+          {useFreeCredits && (
+            <Link to="/settings" className="text-xs text-[var(--matcha-600)] underline ml-2">
+              Atur BYOK di Settings
+            </Link>
+          )}
+        </div>
+
+        {useFreeCredits && myCredit.data && (
+          <div className="mt-4 pt-4 border-t border-[var(--oat-border)] space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[var(--warm-charcoal)]">Token kamu</span>
+              <span className={`text-lg font-headline font-bold ${tokenBalance > 0 ? "text-[var(--clay-black)]" : "text-[var(--clay-red)]"}`}>
+                {tokenBalance.toLocaleString()}
+              </span>
+            </div>
+            {tokenBalance > 0 && (
+              <div className="w-full h-2 bg-[var(--oat-border)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--matcha-500)] rounded-full transition-all"
+                  style={{ width: `${Math.min(100, (tokenBalance / 50000) * 100)}%` }}
+                />
+              </div>
+            )}
+            {myCredit.data.cooldownRemaining > 0 && (
+              <p className="flex items-center gap-1.5 text-xs text-[var(--sunbeam-800)] bg-[var(--sunbeam-300)]/30 px-3 py-1.5 rounded-[var(--radius-md)]">
+                <MaterialIcon name="schedule" className="text-base leading-none shrink-0" />
+                <span>
+                  Cooldown: {myCredit.data.cooldownRemaining} hari lagi untuk auto-refill.
+                </span>
+              </p>
+            )}
+            {tokenBalance <= 0 && myCredit.data.cooldownRemaining === 0 && (
+              <p className="text-xs text-[var(--matcha-700)] bg-[var(--matcha-300)]/30 px-3 py-1.5 rounded-[var(--radius-md)]">
+                Token habis. Auto-refill tersedia saat kamu generate.
+              </p>
+            )}
+            {tokenBalance <= 0 && myCredit.data.cooldownRemaining > 0 && (
+              <p className="text-xs text-[var(--clay-red)]/80 bg-[var(--clay-red)]/5 px-3 py-1.5 rounded-[var(--radius-md)]">
+                Token habis & dalam cooldown. Gunakan BYOK atau tunggu {myCredit.data.cooldownRemaining} hari.
+              </p>
+            )}
+          </div>
+        )}
+
+        {!useFreeCredits && hasConfigs && (
+          <div className="mt-4 pt-4 border-t border-[var(--oat-border)]">
+            <label className="text-sm font-medium text-[var(--clay-black)] mb-2 block">Provider / API Key</label>
+            <div className="flex gap-3">
+              <Select value={selectedKeyId} onValueChange={(v) => v && setSelectedKeyId(v)}>
+                <SelectTrigger className="flex-1 h-11">
+                  <SelectValue>
+                    {selectedConfig ? `${selectedConfig.name} · ${selectedConfig.modelName}` : "Pilih provider..."}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {configs.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name} · {c.modelName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Link to="/settings">
+                <Button variant="outline" size="xl" className="rounded-[var(--radius-lg)] border-2 border-[var(--oat-border)] clay-hover">
+                  <MaterialIcon name="settings" className="mr-1" />
+                  Kelola
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {!useFreeCredits && !hasConfigs && !hasFreeCredits && (
+          <p className="mt-3 text-xs text-[var(--warm-charcoal)]">
+            Tambahkan API key di Settings dahulu.
+          </p>
+        )}
+
+        {!useFreeCredits && !hasConfigs && hasFreeCredits && (
+          <p className="mt-3 text-xs text-[var(--warm-charcoal)]">
+            Belum ada API key?{" "}
+            <button onClick={() => setUseFreeCredits(true)} className="text-[var(--matcha-600)] underline">
+              Gunakan kredit gratis
+            </button>
+            {" "}atau tambah di Settings.
+          </p>
+        )}
+
+        {useFreeCredits && !hasFreeCredits && (
+          <p className="mt-3 text-xs text-[var(--warm-charcoal)]">
+            Free credits sedang dinonaktifkan oleh admin.
+          </p>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         {/* Configuration Panel */}
@@ -526,7 +637,7 @@ function RouteComponent() {
             activeCount={activeCount}
             maxParallel={MAX_PARALLEL}
             generatePending={generate.isPending}
-            hasKey={hasConfigs}
+            hasKey={hasConfigs || useFreeCredits}
             error={error}
             onGenerate={handleGenerate}
             onDismissError={() => setError(null)}

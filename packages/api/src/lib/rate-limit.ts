@@ -1,6 +1,7 @@
 import IORedis from "ioredis";
 import { env } from "@labas/env/server";
 import { TRPCError } from "@trpc/server";
+import { logger } from "@labas/api/logger";
 
 let redis: IORedis | null = null;
 
@@ -55,9 +56,7 @@ export async function checkRateLimit(config: RateLimitConfig): Promise<void> {
     }
   } catch (err) {
     if (err instanceof TRPCError) throw err;
-    // If Redis is down, fail open (log warning, don't block traffic)
-    // eslint-disable-next-line no-console
-    console.warn("[RATELIMIT] Redis unavailable, rate limit skipped:", (err as Error).message);
+    logger.warn("[RATELIMIT] Redis unavailable, rate limit skipped", { error: (err as Error).message });
   }
 }
 
