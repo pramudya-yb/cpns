@@ -52,12 +52,12 @@ const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
 const PackagesRoute = PackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/packages.lazy').then((d) => d.Route))
 const MeRoute = MeRouteImport.update({
   id: '/me',
   path: '/me',
@@ -77,7 +77,7 @@ const LandingRoute = LandingRouteImport.update({
   id: '/landing',
   path: '/landing',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/landing.lazy').then((d) => d.Route))
 const JobsRoute = JobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -92,7 +92,7 @@ const GenerateRoute = GenerateRouteImport.update({
   id: '/generate',
   path: '/generate',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/generate.lazy').then((d) => d.Route))
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -102,7 +102,7 @@ const BankRoute = BankRouteImport.update({
   id: '/bank',
   path: '/bank',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/bank.lazy').then((d) => d.Route))
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
