@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { trpc, trpcClient } from "@/utils/trpc";
 import { authClient } from "@/lib/auth-client";
@@ -36,66 +36,73 @@ export function useGenerationJobs() {
   });
 
   /* Transport layer — polling now, swappable for WebSocket later */
-  const transport = usePollingTransport({ isAuthenticated });
+  const { subscribe, unsubscribe, onUpdate, activeJobs } = usePollingTransport({
+    isAuthenticated,
+  });
 
   useEffect(() => {
-    transport.subscribe(jobIds);
-    return () => transport.unsubscribe();
-  }, [jobIds, transport]);
+    subscribe(jobIds);
+    return () => unsubscribe();
+  }, [jobIds, subscribe, unsubscribe]);
 
-  useEffect(() => {
-    transport.onUpdate((event) => {
-      const { jobId, status, data } = event;
-      const prevStatus = processedStates[jobId];
-      if (prevStatus === status) return;
-      trackStatus(jobId, status);
+  const onUpdateHandlerRef = useRef<
+    (event: { jobId: string; status: string; data: Record<string, unknown> }) => void
+  >(() => {});
+  onUpdateHandlerRef.current = (event) => {
+    const { jobId, status, data } = event;
+    const prevStatus = processedStates[jobId];
+    if (prevStatus === status) return;
+    trackStatus(jobId, status);
 
-      const extractPkgId = (): string | null => {
-        const rj = data.resultJson as Record<string, unknown> | null | undefined;
-        if (!rj || typeof rj !== "object") return null;
-        const id = rj.generatedPackageId;
-        return typeof id === "string" ? id : null;
-      };
+    const extractPkgId = (): string | null => {
+      const rj = data.resultJson as Record<string, unknown> | null | undefined;
+      if (!rj || typeof rj !== "object") return null;
+      const id = rj.generatedPackageId;
+      return typeof id === "string" ? id : null;
+    };
 
-      const baseResult = {
-        jobId,
-        result: data.resultJson as GenerationResult,
-        generatedPackageId: extractPkgId(),
-        mode: (data.mode as string) ?? "quick",
-        timestamp: Date.now(),
-      };
+    const baseResult = {
+      jobId,
+      result: data.resultJson as GenerationResult,
+      generatedPackageId: extractPkgId(),
+      mode: (data.mode as string) ?? "quick",
+      timestamp: Date.now(),
+    };
 
-      const alreadyCompleted = completedResults.some(
-        (r) => r.jobId === jobId && r.timestamp > 0,
-      );
+    const alreadyCompleted = completedResults.some(
+      (r) => r.jobId === jobId && r.timestamp > 0,
+    );
 
-      if (alreadyCompleted) {
-        if (status === "completed" && data.resultJson) {
-          setResult(baseResult);
-        }
-        return;
-      }
-
-      if (status === "partial_ready" && data.resultJson) {
-        if (!completedResults.some((r) => r.jobId === jobId)) {
-          setResult(baseResult);
-        }
-      }
-
+    if (alreadyCompleted) {
       if (status === "completed" && data.resultJson) {
         setResult(baseResult);
       }
+      return;
+    }
 
-      if (status === "failed") {
-        setError((data.errorMessage as string) ?? "Generation failed");
-        clearResult(jobId);
+    if (status === "partial_ready" && data.resultJson) {
+      if (!completedResults.some((r) => r.jobId === jobId)) {
+        setResult(baseResult);
       }
+    }
 
-      if (status === "cancelled") {
-        clearResult(jobId);
-      }
-    });
-  }, [transport, processedStates, completedResults, trackStatus, setResult, setError, clearResult]);
+    if (status === "completed" && data.resultJson) {
+      setResult(baseResult);
+    }
+
+    if (status === "failed") {
+      setError((data.errorMessage as string) ?? "Generation failed");
+      clearResult(jobId);
+    }
+
+    if (status === "cancelled") {
+      clearResult(jobId);
+    }
+  };
+
+  useEffect(() => {
+    onUpdate((event) => onUpdateHandlerRef.current(event));
+  }, [onUpdate]);
 
   /* Merge discovered jobs from myJobs fallback */
   useEffect(() => {
@@ -127,7 +134,6 @@ export function useGenerationJobs() {
     return () => timers.forEach(clearTimeout);
   }, [processedStates, jobIds, removeJob]);
 
-  const activeJobs = transport.activeJobs;
   const activeCount = activeJobs.length;
   const canAddMore = activeCount < MAX_PARALLEL;
   const isGenerating = activeCount > 0;

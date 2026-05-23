@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
 import { type ActiveJob, type JobTransport, type JobTransportEvent, isTerminal } from "./use-job-shared";
@@ -11,6 +11,11 @@ function jobStatusRefetchInterval(query: unknown): number | false {
   return 1000;
 }
 
+/** Track previous active job IDs and per-job statuses to avoid redundant state updates. */
+function serializeJobIds(jobs: ActiveJob[]): string {
+  return jobs.map((j) => j.id).sort().join(",");
+}
+
 /** Polling-based implementation of JobTransport.
  *  Uses tRPC useQueries to poll each tracked job individually. */
 export function usePollingTransport({
@@ -20,8 +25,13 @@ export function usePollingTransport({
 }): JobTransport {
   const [jobIds, setJobIds] = useState<string[]>([]);
   const [activeJobs, setActiveJobs] = useState<ActiveJob[]>([]);
+  const activeJobsRef = useRef(activeJobs);
+  activeJobsRef.current = activeJobs;
   const onUpdateRef = useRef<(event: JobTransportEvent) => void>(undefined);
   const onErrorRef = useRef<(error: Error) => void>(undefined);
+
+  const prevActiveIdsRef = useRef("");
+  const prevStatusesRef = useRef<Record<string, string>>({});
 
   const jobQueries = useQueries({
     queries: jobIds.map((jobId) => ({
@@ -35,24 +45,36 @@ export function usePollingTransport({
     const nextActive = jobQueries
       .filter((q) => q.data && !isTerminal((q.data as { status: string }).status))
       .map((q) => q.data as unknown as ActiveJob);
-    setActiveJobs(nextActive);
 
-    // Emit events for status changes
+    const nextIds = serializeJobIds(nextActive);
+    if (nextIds !== prevActiveIdsRef.current) {
+      prevActiveIdsRef.current = nextIds;
+      setActiveJobs(nextActive);
+    }
+
     for (let i = 0; i < jobQueries.length; i++) {
       const query = jobQueries[i];
       const jobId = jobIds[i];
       if (!jobId || !query.data) continue;
       const data = query.data as Record<string, unknown>;
+      const status = data.status as string;
+      if (prevStatusesRef.current[jobId] === status) continue;
+      prevStatusesRef.current[jobId] = status;
       onUpdateRef.current?.({
         jobId,
-        status: data.status as string,
+        status,
         data,
       });
     }
   }, [jobQueries, jobIds]);
 
   const subscribe = useCallback((ids: string[]) => {
-    setJobIds(ids);
+    setJobIds((prev) => {
+      if (prev.length === ids.length && prev.every((id, i) => id === ids[i])) {
+        return prev;
+      }
+      return ids;
+    });
   }, []);
 
   const unsubscribe = useCallback(() => {
@@ -68,13 +90,16 @@ export function usePollingTransport({
     onErrorRef.current = callback;
   }, []);
 
-  return {
-    subscribe,
-    unsubscribe,
-    onUpdate,
-    onError,
-    get activeJobs() {
-      return activeJobs;
-    },
-  };
+  return useMemo(
+    () => ({
+      subscribe,
+      unsubscribe,
+      onUpdate,
+      onError,
+      get activeJobs() {
+        return activeJobsRef.current;
+      },
+    }),
+    [subscribe, unsubscribe, onUpdate, onError],
+  );
 }

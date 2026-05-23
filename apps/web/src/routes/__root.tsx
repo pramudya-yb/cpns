@@ -94,12 +94,12 @@ function RootComponent() {
         <GlobalGenerationProgress />
         <Toaster richColors />
       </ThemeProvider>
-      {import.meta.env.DEV && (
+      {/* {import.meta.env.DEV && (
         <>
           <TanStackRouterDevtools position="bottom-left" />
           <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
         </>
-      )}
+      )} */}
     </>
   );
 }

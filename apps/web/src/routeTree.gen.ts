@@ -87,7 +87,7 @@ const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/history.lazy').then((d) => d.Route))
 const GenerateRoute = GenerateRouteImport.update({
   id: '/generate',
   path: '/generate',
