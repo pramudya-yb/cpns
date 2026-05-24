@@ -408,6 +408,7 @@ async function runAgenticQuestionPipeline(ctx: {
 
     let { valid, invalid, repairLog } = repairAndParseQuestions(rawQuestions, passage, {
       examType: input.examType,
+      strictExplanation: strategy === "full",
     });
 
     validQuestions = valid;
@@ -428,6 +429,7 @@ async function runAgenticQuestionPipeline(ctx: {
 
       const regenResult = repairAndParseQuestions(regen.questions, passage, {
         examType: input.examType,
+        strictExplanation: strategy === "full",
       });
       validQuestions.push(...regenResult.valid);
       allRepairLogs.push(...regenResult.repairLog.map((l) => `[Regen ${regenerationAttempts}] ${l}`));
@@ -450,6 +452,7 @@ async function runAgenticQuestionPipeline(ctx: {
       accumulatedTokens += extra.tokensUsed;
       const extraResult = repairAndParseQuestions(extra.questions, passage, {
         examType: input.examType,
+        strictExplanation: strategy === "full",
       });
       validQuestions.push(...extraResult.valid);
       allRepairLogs.push(...extraResult.repairLog.map((l) => `[Extra] ${l}`));

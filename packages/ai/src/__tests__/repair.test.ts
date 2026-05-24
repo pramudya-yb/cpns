@@ -231,6 +231,20 @@ describe("repairAndParseQuestions", () => {
     expect(result.invalid).toHaveLength(1);
     expect(result.valid).toHaveLength(0);
   });
+
+  it("can skip strict explanation language checks for fast paths", () => {
+    const raw = [
+      {
+        ...baseRaw,
+        explanation: "This answer is correct because the passage states it explicitly.",
+      },
+    ];
+    const strict = repairAndParseQuestions(raw, fullPassage);
+    const lenient = repairAndParseQuestions(raw, fullPassage, { strictExplanation: false });
+
+    expect(strict.valid).toHaveLength(0);
+    expect(lenient.valid).toHaveLength(1);
+  });
 });
 
 describe("tryParseQuestion", () => {

@@ -80,12 +80,12 @@ describe("splitIntoShards", () => {
 
   it("splits into multiple shards when count exceeds max", () => {
     const result = splitIntoShards([{ section: "READING", count: 20 }]);
-    expect(result).toHaveLength(4); // ceil(20/6) = 4
-    expect(result[0]!.count).toBe(6);
-    expect(result[3]!.count).toBe(2); // last shard has remainder
+    expect(result).toHaveLength(3); // ceil(20/8) = 3
+    expect(result[0]!.count).toBe(8);
+    expect(result[2]!.count).toBe(4); // last shard has remainder
     result.forEach((shard) => {
       expect(shard.section).toBe("READING");
-      expect(shard.shardCount).toBe(4);
+      expect(shard.shardCount).toBe(3);
     });
   });
 
@@ -94,7 +94,7 @@ describe("splitIntoShards", () => {
       { section: "READING", count: 10 },
       { section: "LISTENING", count: 10 },
     ]);
-    expect(result).toHaveLength(4); // ceil(10/6) + ceil(10/6) = 2 + 2
+    expect(result).toHaveLength(4); // ceil(10/8) + ceil(10/8) = 2 + 2
     expect(result[0]!.section).toBe("READING");
     expect(result[0]!.sectionIndex).toBe(0);
     expect(result[2]!.section).toBe("LISTENING");

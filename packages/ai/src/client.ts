@@ -228,7 +228,7 @@ export class OpenAICompatibleClient {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(300_000),
+      signal: AbortSignal.timeout(180_000),
     });
 
     log("info", "Received response", {

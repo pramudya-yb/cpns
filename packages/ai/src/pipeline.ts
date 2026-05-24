@@ -9,7 +9,7 @@ import {
   type GenerationResult,
 } from "./schemas";
 
-const MAX_QUICK_REGEN_ATTEMPTS = 2;
+const MAX_QUICK_REGEN_ATTEMPTS = 1;
 
 export interface QuickModeCallbacks {
   onToken?: (token: string) => void;
@@ -113,7 +113,7 @@ export async function generateQuestionsQuick(
   let { valid: validQuestions, invalid: pendingInvalid, repairLog } = repairAndParseQuestions(
     raw.questions,
     fallbackPassage,
-    { examType: input.examType },
+    { examType: input.examType, strictExplanation: false },
   );
 
   let accumulatedTokens = tokensUsed ?? 0;
@@ -137,6 +137,7 @@ export async function generateQuestionsQuick(
 
     const regenResult = repairAndParseQuestions(regen.questions, fallbackPassage, {
       examType: input.examType,
+      strictExplanation: false,
     });
     validQuestions = [...validQuestions, ...regenResult.valid];
     pendingInvalid = regenResult.invalid;

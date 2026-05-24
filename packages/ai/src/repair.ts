@@ -187,10 +187,6 @@ function ensureSkillTags(q: GenericQuestion): string[] {
   return ["comprehension"];
 }
 
-function hasCJK(text: string): boolean {
-  return /[\u4E00-\u9FFF\u3400-\u4DBF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF]/.test(text);
-}
-
 function ensureExplanation(q: GenericQuestion): string {
   if (q.explanation && q.explanation.trim().length > 0) {
     return q.explanation.trim();
@@ -220,6 +216,7 @@ export function repairQuestion(
   raw: unknown,
   fullPassage: string,
   examType?: string,
+  strictExplanation = true,
 ): { question: GenericQuestion; wasRepaired: boolean; repairNotes: string[] } {
   const notes: string[] = [];
   let wasRepaired = false;
@@ -259,7 +256,7 @@ export function repairQuestion(
   if (explanationText.trim().length === 0) {
     notes.push("explanation missing, used fallback");
     wasRepaired = true;
-  } else if (getExplanationLanguageErrors(explanationText).length > 0) {
+  } else if (strictExplanation && getExplanationLanguageErrors(explanationText).length > 0) {
     notes.push("explanation not in Bahasa Indonesia, marked for regeneration");
     wasRepaired = true;
   }
@@ -305,7 +302,7 @@ export function tryParseQuestion(generic: GenericQuestion): Question | null {
 export function repairAndParseQuestions(
   rawQuestions: unknown[],
   fullPassage: string,
-  options?: { examType?: string },
+  options?: { examType?: string; strictExplanation?: boolean },
 ): {
   valid: Question[];
   invalid: { index: number; raw: unknown; errors: string[] }[];
@@ -316,11 +313,17 @@ export function repairAndParseQuestions(
   const repairLog: string[] = [];
 
   const examType = options?.examType;
+  const strictExplanation = options?.strictExplanation ?? true;
 
   for (let i = 0; i < rawQuestions.length; i++) {
     const raw = rawQuestions[i];
     try {
-      const { question: repaired, wasRepaired, repairNotes } = repairQuestion(raw, fullPassage, examType);
+      const { question: repaired, wasRepaired, repairNotes } = repairQuestion(
+        raw,
+        fullPassage,
+        examType,
+        strictExplanation,
+      );
       if (wasRepaired) {
         repairLog.push(`Q${i + 1}: ${repairNotes.join("; ")}`);
       }
@@ -328,7 +331,7 @@ export function repairAndParseQuestions(
       const semanticErrors = [
         ...getQuestionSemanticErrors(repaired),
         ...(examType ? getQuestionLanguageErrors(repaired, examType) : []),
-        ...getExplanationLanguageErrors(repaired.explanation),
+        ...(strictExplanation ? getExplanationLanguageErrors(repaired.explanation) : []),
       ];
       if (semanticErrors.length > 0) {
         invalid.push({ index: i, raw, errors: semanticErrors });

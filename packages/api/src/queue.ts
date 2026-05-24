@@ -38,10 +38,11 @@ const FAST_QUEUE_NAME = "generation-fast";
 const QUALITY_QUEUE_NAME = "generation-quality";
 const CANCEL_POLL_MS = 500;
 const HEARTBEAT_MS = 10_000;
-const MAX_QUESTIONS_PER_SHARD = 6;
+const MAX_QUESTIONS_PER_SHARD = 8;
 const FAST_SHARD_CONCURRENCY = 3;
 const QUALITY_SECTION_CONCURRENCY = 2;
-export const MAX_SHARD_RETRIES = 2;
+const QUICK_PARSE_FALLBACK_TO_AGENTIC = false;
+export const MAX_SHARD_RETRIES = 1;
 
 interface SectionSplit {
   section: string;
@@ -759,14 +760,14 @@ export const generationWorker = new Worker<FastJobData>(
                 sharedPassage,
                 onAgenticProgress,
                 tokenCounter,
-                { strategy: "full", maxRegenerateAttempts: 1 },
+                { strategy: "lean", maxRegenerateAttempts: 1 },
               );
             } else {
               sectionResult = await generateQuestionsAgentic(
                 subInput,
                 onAgenticProgress,
                 tokenCounter,
-                { strategy: "full", maxRegenerateAttempts: 1 },
+                { strategy: "lean", maxRegenerateAttempts: 1 },
               );
             }
           } else {
@@ -777,6 +778,7 @@ export const generationWorker = new Worker<FastJobData>(
         } catch (quickErr: any) {
           const quickErrorMessage = quickErr?.message ?? String(quickErr);
           const shouldFallbackToAgentic =
+            QUICK_PARSE_FALLBACK_TO_AGENTIC &&
             selectedMode === "quick" &&
             (/Failed to parse AI response as JSON/i.test(quickErrorMessage) ||
               /Unterminated string/i.test(quickErrorMessage) ||
@@ -790,7 +792,7 @@ export const generationWorker = new Worker<FastJobData>(
             { ...subInput, mode: "agentic" },
             onAgenticProgress,
             tokenCounter,
-            { strategy: "full", maxRegenerateAttempts: 1 },
+            { strategy: "lean", maxRegenerateAttempts: 1 },
           );
         }
 
