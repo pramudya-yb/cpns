@@ -122,29 +122,35 @@ PLATFORM_AI_MODEL=
 FREE_CREDITS_ENABLED=false
 ```
 
-### Post-deployment command (migrations)
+### Database migrations
 
-In the server application: **Configuration → Advanced → Post-deployment Command**:
+Migrations run automatically on container start (see [`deploy/server.nixpacks.toml`](./server.nixpacks.toml)). **Remove any Post-deployment Command** for `db:migrate` — it often runs without runtime env vars in Coolify.
 
-```bash
-bun run db:migrate
-```
+**`DATABASE_URL` must be set on the server application** (not on the PostgreSQL resource). The container does not have `apps/server/.env` (gitignored).
 
-Run on first deploy and after schema changes. Alternative for local-style sync: `bun run db:push`.
+1. Open **server application** → **Environment Variables**
+2. Add `DATABASE_URL` with **Available at Runtime** enabled (default)
+3. Do **not** set it as Build-only
 
-**`DATABASE_URL` must be set in Coolify Environment Variables** before deploy. The container does not have `apps/server/.env` (it is gitignored). Drizzle reads `DATABASE_URL` from `process.env` in production.
+To get the connection string:
 
-To get the connection string from a Coolify PostgreSQL service:
-
-1. Open your PostgreSQL resource → **Configuration** or **Connect**
-2. Copy the **internal** connection URL (hostname is the Docker service name, not `localhost`)
-3. Paste into the server app env:
+1. Open your **PostgreSQL** resource → **Connect** / **Configuration**
+2. Copy the **internal** URL (Docker hostname, not `localhost`)
+3. Paste into the **server app** env:
 
 ```env
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/labas
 ```
 
-If migrate fails with `url: ''`, `DATABASE_URL` is missing or empty in the server app's environment — fix that and redeploy.
+Verify in the server app **Terminal**:
+
+```bash
+echo $DATABASE_URL
+```
+
+If empty, the variable is missing or not marked as runtime — fix and redeploy.
+
+Alternative for local-style sync (not recommended in production): `bun run db:push`.
 
 Optional seed (run once via **Terminal** on the server app):
 
@@ -207,7 +213,7 @@ Rebuild the web app whenever the API URL changes.
 
 1. [ ] Deploy PostgreSQL and Redis; confirm both are healthy.
 2. [ ] Create server app, set all runtime env vars.
-3. [ ] Set **Post-deployment Command** to `bun run db:migrate` (after `DATABASE_URL` is set).
+3. [ ] Set `DATABASE_URL` on **server app** env (Runtime). Remove Post-deployment migrate command.
 4. [ ] Deploy server; confirm `https://api.example.com/` returns `OK`.
 5. [ ] Create web app, set `VITE_SERVER_URL` as **buildtime** env.
 6. [ ] Deploy web; confirm app loads and API calls reach the server.
