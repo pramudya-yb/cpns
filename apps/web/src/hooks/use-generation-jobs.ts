@@ -75,8 +75,11 @@ export function useGenerationJobs() {
     );
 
     if (alreadyCompleted) {
-      if (status === "completed" && data.resultJson) {
+      if ((status === "completed" || status === "completed_partial") && data.resultJson) {
         setResult(baseResult);
+      }
+      if (status === "completed_partial" && data.errorMessage) {
+        setError(data.errorMessage as string);
       }
       return;
     }
@@ -84,6 +87,13 @@ export function useGenerationJobs() {
     if (status === "partial_ready" && data.resultJson) {
       if (!completedResults.some((r) => r.jobId === jobId)) {
         setResult(baseResult);
+      }
+    }
+
+    if (status === "completed_partial" && data.resultJson) {
+      setResult(baseResult);
+      if (data.errorMessage) {
+        setError(data.errorMessage as string);
       }
     }
 

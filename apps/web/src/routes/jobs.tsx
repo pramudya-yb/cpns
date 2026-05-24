@@ -118,6 +118,7 @@ const STATUS_COLORS: Record<string, string> = {
   partial_ready: "bg-[var(--lemon-300)] text-[var(--lemon-800)]",
   running_quality: "bg-[var(--matcha-300)] text-[var(--matcha-800)]",
   completed: "bg-[var(--lemon-300)] text-[var(--lemon-800)]",
+  completed_partial: "bg-[var(--pomegranate-400)]/20 text-[var(--pomegranate-400)]",
   failed: "bg-[var(--pomegranate-400)]/20 text-[var(--pomegranate-400)]",
   cancelled: "bg-[var(--warm-silver)] text-[var(--warm-charcoal)]",
 };
@@ -129,6 +130,7 @@ const STATUS_ICONS: Record<string, string> = {
   partial_ready: "auto_awesome",
   running_quality: "tune",
   completed: "check_circle",
+  completed_partial: "warning",
   failed: "error",
   cancelled: "block",
 };
@@ -330,8 +332,13 @@ function RouteComponent() {
                   )}
                 </CardHeader>
 
-                {job.status === "completed" && result && (
+                {(job.status === "completed" || job.status === "completed_partial") && result && (
                   <CardContent className="pt-0">
+                    {job.status === "completed_partial" && job.errorMessage && (
+                      <div className="mb-3 p-3 rounded-[var(--radius-md)] bg-[var(--pomegranate-400)]/10 border border-[var(--pomegranate-400)]/20 text-sm text-[var(--pomegranate-400)]">
+                        {job.errorMessage}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mb-3">
                       <div className="text-sm text-[var(--warm-charcoal)]">
                         {(() => {

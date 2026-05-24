@@ -1,5 +1,9 @@
-import { db } from "./index";
+import { drizzle } from "drizzle-orm/node-postgres";
+
+import { loadDatabaseUrl } from "./database-url";
 import { examType, sectionType } from "./schema";
+
+const db = drizzle(loadDatabaseUrl());
 
 const examTypes = [
   { id: "IELTS", name: "IELTS Academic", language: "English", description: "International English Language Testing System" },

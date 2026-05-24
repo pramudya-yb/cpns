@@ -151,7 +151,7 @@ bun run db:push
 Optionally seed reference data (exam types, sections):
 
 ```bash
-cd packages/db && bun run db:seed
+bun run db:seed
 ```
 
 ### 5. Run the dev servers
@@ -218,6 +218,7 @@ Run from the **repository root**:
 | `bun run db:push` | Push Drizzle schema to PostgreSQL |
 | `bun run db:generate` | Generate migration files |
 | `bun run db:migrate` | Run migrations |
+| `bun run db:seed` | Seed reference data (exam types, sections) |
 | `bun run db:studio` | Open Drizzle Studio |
 | `bun run db:start` | Start PostgreSQL + Redis (Docker Compose) |
 | `bun run db:stop` | Stop Docker Compose services |

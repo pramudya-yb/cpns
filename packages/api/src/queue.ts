@@ -26,6 +26,11 @@ import {
 } from "@labas/db";
 import { and, eq, notInArray } from "drizzle-orm";
 import { encryptApiKey, decryptApiKey } from "./lib/encryption";
+import {
+  isNonRetryableProviderError,
+  resolveGenerationJobOutcome,
+  sectionsWithNoQuestions,
+} from "./lib/generation-outcome";
 
 const connectionOptions = { maxRetriesPerRequest: null };
 const FAST_QUEUE_NAME = "generation-fast";
@@ -359,15 +364,17 @@ async function saveGeneratedArtifacts(
         .returning();
 
       if (sec) {
-        await db.insert(sectionQuestion).values(
-          sectionQuestions
-            .map((q, idx) => ({
-              sectionId: sec.id,
-              questionId: savedQuestionIds[q._globalIndex],
-              orderIndex: idx,
-            }))
-            .filter((q) => q.questionId != null) as any,
-        );
+        const sectionQuestionRows = sectionQuestions
+          .map((q, idx) => ({
+            sectionId: sec.id,
+            questionId: savedQuestionIds[q._globalIndex],
+            orderIndex: idx,
+          }))
+          .filter((q) => q.questionId != null);
+
+        if (sectionQuestionRows.length > 0) {
+          await db.insert(sectionQuestion).values(sectionQuestionRows as any);
+        }
       }
     }
   } catch (packageErr: any) {
@@ -383,10 +390,36 @@ async function saveGeneratedArtifacts(
   return { savedQuestionIds, generatedPackageId };
 }
 
+function shardKey(shard: ShardPlan): string {
+  return `${shard.sectionIndex}:${shard.shardIndex}`;
+}
+
+async function failGenerationJob(params: {
+  jobId: string;
+  errorMessage: string;
+  tokensUsed?: number;
+  durationMs: number;
+}) {
+  await db
+    .update(generationJob)
+    .set({
+      status: "failed",
+      progress: 100,
+      progressMessage: "Generation failed",
+      errorMessage: params.errorMessage,
+      tokensUsed: params.tokensUsed,
+      durationMs: params.durationMs,
+      completedAt: new Date(),
+    })
+    .where(eq(generationJob.id, params.jobId));
+}
+
 async function completeJobWithResult(params: {
   jobId: string;
   input: GenerationInput;
+  status?: "completed" | "completed_partial";
   statusMessage?: string;
+  errorMessage?: string | null;
   allQuestions: PersistableQuestion[];
   sectionSplits: SectionSplit[];
   totalTokens: number;
@@ -420,9 +453,10 @@ async function completeJobWithResult(params: {
   await db
     .update(generationJob)
     .set({
-      status: "completed",
+      status: params.status ?? "completed",
       progress: 100,
       progressMessage: params.statusMessage ?? "Completed",
+      errorMessage: params.errorMessage ?? null,
       resultJson: {
         ...result,
         savedQuestionIds,
@@ -430,6 +464,8 @@ async function completeJobWithResult(params: {
         sectionSplits: params.sectionSplits,
         qualityPhase: "final",
         metrics: params.metrics,
+        isPartial: params.status === "completed_partial",
+        requestedQuestionCount: params.input.questionCount,
       } as any,
       tokensUsed: params.totalTokens,
       durationMs: params.durationMs,
@@ -489,7 +525,7 @@ export async function cancelGenerationJob(
 
   if (!row) return { ok: false, reason: "not_found" };
   if (row.userId !== userId) return { ok: false, reason: "forbidden" };
-  if (row.status === "completed" || row.status === "failed" || row.status === "cancelled") {
+  if (row.status === "completed" || row.status === "completed_partial" || row.status === "failed" || row.status === "cancelled") {
     return { ok: false, reason: "not_cancellable" };
   }
 
@@ -535,7 +571,8 @@ export const generationWorker = new Worker<FastJobData>(
     if (
       !initialRow ||
       initialRow.status === "cancelled" ||
-      initialRow.status === "completed"
+      initialRow.status === "completed" ||
+      initialRow.status === "completed_partial"
     ) {
       return;
     }
@@ -546,7 +583,7 @@ export const generationWorker = new Worker<FastJobData>(
       .where(
         and(
           eq(generationJob.id, jobId),
-          notInArray(generationJob.status, ["cancelled", "completed"]),
+          notInArray(generationJob.status, ["cancelled", "completed", "completed_partial"]),
         ),
       )
       .returning({ id: generationJob.id });
@@ -827,24 +864,50 @@ export const generationWorker = new Worker<FastJobData>(
       };
 
       const failedShards: ShardPlan[] = [];
+      const shardFailureInfo = new Map<string, { error: string; nonRetryable: boolean }>();
       await runWithConcurrency(shards, FAST_SHARD_CONCURRENCY, async (shard) => {
         try {
           await runShard(shard);
-        } catch {
-          log("warn", "[GENERATION] Fast shard failed.", { jobId, section: shard.section });
+        } catch (err: any) {
+          const message = err?.message ?? String(err);
+          shardFailureInfo.set(shardKey(shard), {
+            error: message,
+            nonRetryable: isNonRetryableProviderError(err),
+          });
+          log("warn", "[GENERATION] Fast shard failed.", {
+            jobId,
+            section: shard.section,
+            nonRetryable: isNonRetryableProviderError(err),
+          });
           failedShards.push(shard);
         }
       });
 
       if (failedShards.length > 0) {
-        await pushLog(
-          "retry_budget",
-          `Retrying ${failedShards.length} failed shard(s), budget=${MAX_SHARD_RETRIES}`,
-          "running",
-        );
+        const retryableCount = failedShards.filter(
+          (shard) => !shardFailureInfo.get(shardKey(shard))?.nonRetryable,
+        ).length;
+        if (retryableCount > 0) {
+          await pushLog(
+            "retry_budget",
+            `Retrying ${retryableCount} failed shard(s), budget=${MAX_SHARD_RETRIES}`,
+            "running",
+          );
+        }
       }
 
       for (const failedShard of failedShards) {
+        const failure = shardFailureInfo.get(shardKey(failedShard));
+        if (failure?.nonRetryable) {
+          await pushLog(
+            "retry_budget",
+            `[${failedShard.section}] provider error — skipping retries`,
+            "error",
+            failure.error.slice(0, 300),
+          );
+          continue;
+        }
+
         let success = false;
         for (let attempt = 1; attempt <= MAX_SHARD_RETRIES; attempt++) {
           try {
@@ -852,14 +915,24 @@ export const generationWorker = new Worker<FastJobData>(
             success = true;
             break;
           } catch (retryErr: any) {
+            const retryMessage = retryErr?.message ?? String(retryErr);
+            if (isNonRetryableProviderError(retryErr)) {
+              await pushLog(
+                "retry_budget",
+                `[${failedShard.section}] provider error — stopping retries`,
+                "error",
+                retryMessage.slice(0, 300),
+              );
+              break;
+            }
             await pushLog(
               "retry_budget",
-              `[${failedShard.section}] shard retry ${attempt}/${MAX_SHARD_RETRIES} failed: ${retryErr?.message ?? String(retryErr)}`,
+              `[${failedShard.section}] shard retry ${attempt}/${MAX_SHARD_RETRIES} failed: ${retryMessage}`,
               "error",
             );
           }
         }
-        if (!success) {
+        if (!success && !failure?.nonRetryable) {
           await pushLog(
             "retry_budget",
             `[${failedShard.section}] exhausted retry budget`,
@@ -878,59 +951,66 @@ export const generationWorker = new Worker<FastJobData>(
         .flatMap((r) => r.questions)
         .slice(0, input.questionCount);
 
-      if (allQuestions.length === 0) {
-        throw new Error("No questions generated in fast phase");
-      }
+      const outcome = resolveGenerationJobOutcome({
+        requestedCount: input.questionCount,
+        generatedCount: allQuestions.length,
+        failedSections: sectionsWithNoQuestions(sectionSplits, allQuestions),
+      });
 
-      const fastResult: GenerationResult = {
-        questions: allQuestions as any,
-        meta: {
-          model: input.apiKeyConfig.model,
-          tokensUsed: totalTokens || approxTokens,
-          durationMs: totalDurationMs || Date.now() - start,
-          mode: input.mode,
-        },
-      };
-
-      if (selectedMode === "agentic") {
-        await pushLog("save", "Saving agentic result...", "running");
-        await completeJobWithResult({
+      if (outcome.status === "failed") {
+        await pushLog("save", outcome.errorMessage ?? "Generation failed", "error");
+        await failGenerationJob({
           jobId,
-          input,
-          allQuestions,
-          sectionSplits,
-          totalTokens: totalTokens || approxTokens,
+          errorMessage: outcome.errorMessage ?? "Generation failed",
+          tokensUsed: totalTokens || approxTokens || undefined,
           durationMs: Date.now() - start,
-          statusMessage: "Completed",
-          metrics: {
-            timeToFirstValidQuestionMs: timeToFirstValidQuestionMs ?? Date.now() - start,
-            shardCount: shards.length,
-            shardRetryBudget: MAX_SHARD_RETRIES,
-            shardFailures: failedShards.length,
-            singlePassAgentic: true,
-          },
         });
-        await pushLog("save", `Saved ${allQuestions.length} questions`, "done");
         return;
       }
 
-      await pushLog("save", "Saving quick result...", "running");
-      await completeJobWithResult({
+      const finalizeParams = {
         jobId,
         input,
         allQuestions,
         sectionSplits,
         totalTokens: totalTokens || approxTokens,
         durationMs: Date.now() - start,
-        statusMessage: "Completed",
+        status: outcome.status,
+        statusMessage: outcome.progressMessage,
+        errorMessage: outcome.errorMessage,
         metrics: {
           timeToFirstValidQuestionMs: timeToFirstValidQuestionMs ?? Date.now() - start,
           shardCount: shards.length,
           shardRetryBudget: MAX_SHARD_RETRIES,
           shardFailures: failedShards.length,
+          requestedQuestionCount: input.questionCount,
+          generatedQuestionCount: allQuestions.length,
+          ...(selectedMode === "agentic" ? { singlePassAgentic: true } : {}),
         },
-      });
-      await pushLog("save", `Saved ${allQuestions.length} questions`, "done");
+      };
+
+      if (selectedMode === "agentic") {
+        await pushLog("save", "Saving agentic result...", "running");
+        await completeJobWithResult(finalizeParams);
+        await pushLog(
+          "save",
+          outcome.status === "completed_partial"
+            ? `Saved ${allQuestions.length}/${input.questionCount} questions (partial)`
+            : `Saved ${allQuestions.length} questions`,
+          outcome.status === "completed_partial" ? "error" : "done",
+        );
+        return;
+      }
+
+      await pushLog("save", "Saving quick result...", "running");
+      await completeJobWithResult(finalizeParams);
+      await pushLog(
+        "save",
+        outcome.status === "completed_partial"
+          ? `Saved ${allQuestions.length}/${input.questionCount} questions (partial)`
+          : `Saved ${allQuestions.length} questions`,
+        outcome.status === "completed_partial" ? "error" : "done",
+      );
     } catch (err: any) {
       if (
         err instanceof GenerationJobCancelledError ||
@@ -962,7 +1042,7 @@ export const generationWorker = new Worker<FastJobData>(
           completedAt: new Date(),
         })
         .where(eq(generationJob.id, jobId));
-      throw err;
+      return;
     } finally {
       stopHeartbeat();
       cancelPoll.stop();
@@ -989,7 +1069,8 @@ export const generationQualityWorker = new Worker<QualityJobData>(
     if (
       !initialRow ||
       initialRow.status === "cancelled" ||
-      initialRow.status === "completed"
+      initialRow.status === "completed" ||
+      initialRow.status === "completed_partial"
     ) {
       return;
     }
@@ -1178,7 +1259,7 @@ export const generationQualityWorker = new Worker<QualityJobData>(
           completedAt: new Date(),
         })
         .where(eq(generationJob.id, jobId));
-      throw err;
+      return;
     } finally {
       cancelPoll.stop();
     }
@@ -1224,11 +1305,7 @@ export async function enqueueGeneration(
       jobId: jobRecord.id,
       removeOnComplete: { count: 100 },
       removeOnFail: { count: 100 },
-      attempts: 3,
-      backoff: {
-        type: "exponential",
-        delay: 5000,
-      },
+      attempts: 1,
     },
   );
 

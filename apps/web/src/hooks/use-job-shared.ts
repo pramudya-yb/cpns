@@ -59,7 +59,7 @@ export const ACTIVE_STATUSES = new Set([
   "running_quality",
 ]);
 
-export const TERMINAL_STATUSES = new Set(["completed", "failed", "cancelled"]);
+export const TERMINAL_STATUSES = new Set(["completed", "completed_partial", "failed", "cancelled"]);
 
 export function isTerminal(status: string): boolean {
   return TERMINAL_STATUSES.has(status);

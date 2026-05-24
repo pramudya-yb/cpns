@@ -8,7 +8,7 @@ import { getErrorMessage } from "@/lib/error-utils";
 import { DataTable } from "@/components/admin/DataTable";
 import type { ColumnDef } from "@/components/admin/DataTable";
 
-const STATUSES = ["all", "pending", "running", "completed", "failed", "cancelled"] as const;
+const STATUSES = ["all", "pending", "running", "completed", "completed_partial", "failed", "cancelled"] as const;
 
 export const Route = createFileRoute("/admin/jobs")({
   component: AdminJobs,
@@ -87,6 +87,7 @@ function AdminJobs() {
       cell: ({ row }) => (
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
           row.status === "completed" ? "bg-[var(--matcha-300)] text-[var(--matcha-800)]" :
+          row.status === "completed_partial" ? "bg-[var(--pomegranate-400)]/10 text-[var(--pomegranate-400)]" :
           row.status === "failed" ? "bg-[var(--clay-red)]/10 text-[var(--clay-red)]" :
           row.status === "cancelled" ? "bg-[var(--oat-border)] text-[var(--warm-charcoal)]" :
           row.status === "running" ? "bg-[var(--sunbeam-300)] text-[var(--sunbeam-800)]" :

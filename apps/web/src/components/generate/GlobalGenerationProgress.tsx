@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@labas/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useGenerationJobs, type ActiveJob } from "@/hooks/use-generation-jobs";
+import { isTerminal } from "@/hooks/use-job-shared";
 import { trpc, queryClient } from "@/utils/trpc";
 
 interface LogEntry {
@@ -196,7 +197,7 @@ function SingleJobCard({
         </div>
       </div>
 
-      {isAgentic && <TerminalLog logs={logs} isRunning={job.status !== "completed"} />}
+      {isAgentic && <TerminalLog logs={logs} isRunning={!isTerminal(job.status)} />}
     </div>
   );
 }

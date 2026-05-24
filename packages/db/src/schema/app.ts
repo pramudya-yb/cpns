@@ -507,7 +507,7 @@ export const generationJob = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    status: text("status").notNull().default("pending"), // "pending" | "running" | "completed" | "failed" | "cancelled"
+    status: text("status").notNull().default("pending"), // "pending" | "running_*" | "partial_ready" | "completed" | "completed_partial" | "failed" | "cancelled"
     mode: text("mode").notNull().default("quick"), // "quick" | "agentic"
     examTypeId: text("exam_type_id").notNull(),
     sectionTypeId: text("section_type_id").notNull(),

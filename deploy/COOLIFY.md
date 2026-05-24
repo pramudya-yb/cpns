@@ -155,7 +155,7 @@ Alternative for local-style sync (not recommended in production): `bun run db:pu
 Optional seed (run once via **Terminal** on the server app):
 
 ```bash
-cd packages/db && bun run db:seed
+bun run db:seed
 ```
 
 ### Verify

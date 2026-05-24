@@ -31,6 +31,7 @@
     "db:studio": "turbo -F @labas/db db:studio",
     "db:generate": "turbo -F @labas/db db:generate",
     "db:migrate": "turbo -F @labas/db db:migrate",
+    "db:seed": "turbo -F @labas/db db:seed",
     "db:start": "turbo -F @labas/db db:start",
     "db:watch": "turbo -F @labas/db db:watch",
     "db:stop": "turbo -F @labas/db db:stop",
