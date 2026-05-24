@@ -122,21 +122,35 @@ PLATFORM_AI_MODEL=
 FREE_CREDITS_ENABLED=false
 ```
 
-### Pre-deploy command
+### Post-deployment command (migrations)
 
-Run on first deploy and after schema changes:
-
-```bash
-bun run db:push
-```
-
-Or, if using migration files:
+In the server application: **Configuration → Advanced → Post-deployment Command**:
 
 ```bash
 bun run db:migrate
 ```
 
-Ensure `DATABASE_URL` is set when this command runs. Drizzle reads it from the environment (`packages/db/drizzle.config.ts`).
+Run on first deploy and after schema changes. Alternative for local-style sync: `bun run db:push`.
+
+**`DATABASE_URL` must be set in Coolify Environment Variables** before deploy. The container does not have `apps/server/.env` (it is gitignored). Drizzle reads `DATABASE_URL` from `process.env` in production.
+
+To get the connection string from a Coolify PostgreSQL service:
+
+1. Open your PostgreSQL resource → **Configuration** or **Connect**
+2. Copy the **internal** connection URL (hostname is the Docker service name, not `localhost`)
+3. Paste into the server app env:
+
+```env
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/labas
+```
+
+If migrate fails with `url: ''`, `DATABASE_URL` is missing or empty in the server app's environment — fix that and redeploy.
+
+Optional seed (run once via **Terminal** on the server app):
+
+```bash
+cd packages/db && bun run db:seed
+```
 
 ### Verify
 
@@ -193,7 +207,7 @@ Rebuild the web app whenever the API URL changes.
 
 1. [ ] Deploy PostgreSQL and Redis; confirm both are healthy.
 2. [ ] Create server app, set all runtime env vars.
-3. [ ] Run pre-deploy `bun run db:push` (or `db:migrate`).
+3. [ ] Set **Post-deployment Command** to `bun run db:migrate` (after `DATABASE_URL` is set).
 4. [ ] Deploy server; confirm `https://api.example.com/` returns `OK`.
 5. [ ] Create web app, set `VITE_SERVER_URL` as **buildtime** env.
 6. [ ] Deploy web; confirm app loads and API calls reach the server.
@@ -206,6 +220,7 @@ Rebuild the web app whenever the API URL changes.
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
+| Migrate fails: `url: ''` / `Please provide required params` | `DATABASE_URL` not set in Coolify env | Add internal Postgres URL to server app Environment Variables, redeploy |
 | API calls go to `localhost:3000` | `VITE_SERVER_URL` not set at build time | Rebuild web with buildtime env |
 | CORS or auth errors | `CORS_ORIGIN` ≠ web URL | Match exact public web URL on server |
 | Server crashes on start | Missing or invalid env (SMTP, secrets) | Check Coolify logs; compare with `apps/server/.env.example` |
