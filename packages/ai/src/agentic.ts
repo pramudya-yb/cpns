@@ -1,5 +1,6 @@
 import { OpenAICompatibleClient } from "./client";
 import { GenerationError } from "./errors";
+import { parseAiJsonResponse } from "./parse-response";
 import {
   getPassageJsonSchemaDescription,
   getValidationJsonSchemaDescription,
@@ -68,18 +69,7 @@ function calculateMaxTokens(
 }
 
 function parseJsonResponse(content: string): unknown {
-  if (!content) throw new Error("Empty response from AI");
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(content);
-  } catch {
-    const cleaned = content
-      .replace(/^```json\s*/, "")
-      .replace(/```\s*$/, "")
-      .trim();
-    parsed = JSON.parse(cleaned);
-  }
-  return parsed;
+  return parseAiJsonResponse(content);
 }
 
 async function step1GeneratePassage(

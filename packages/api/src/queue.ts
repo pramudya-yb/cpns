@@ -27,6 +27,7 @@ import {
 import { and, eq, notInArray } from "drizzle-orm";
 import { encryptApiKey, decryptApiKey } from "./lib/encryption";
 import {
+  collectShardFailureCause,
   isNonRetryableProviderError,
   resolveGenerationJobOutcome,
   sectionsWithNoQuestions,
@@ -955,6 +956,9 @@ export const generationWorker = new Worker<FastJobData>(
         requestedCount: input.questionCount,
         generatedCount: allQuestions.length,
         failedSections: sectionsWithNoQuestions(sectionSplits, allQuestions),
+        cause: collectShardFailureCause(
+          failedShards.map((shard) => shardFailureInfo.get(shardKey(shard))),
+        ),
       });
 
       if (outcome.status === "failed") {

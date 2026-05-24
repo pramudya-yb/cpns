@@ -1,20 +1,12 @@
 import { OpenAICompatibleClient } from "./client";
+import { parseAiJsonResponse } from "./parse-response";
 import { getGenericQuestionJsonSchemaDescription } from "./repair";
 import { OPTION_QUALITY_RULES } from "./prompts";
 import { buildContentLanguageRules, buildExplanationLanguageRule } from "./language-rules";
 import type { GenerationInput } from "./schemas";
 
 function parseJsonResponse(content: string): unknown {
-  if (!content) throw new Error("Empty response from AI");
-  try {
-    return JSON.parse(content);
-  } catch {
-    const cleaned = content
-      .replace(/^```json\s*/, "")
-      .replace(/```\s*$/, "")
-      .trim();
-    return JSON.parse(cleaned);
-  }
+  return parseAiJsonResponse(content);
 }
 
 function calculateRegenerateMaxTokens(userMax: number, count: number): number {

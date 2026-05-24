@@ -1,3 +1,9 @@
+import {
+  extractContentFromCompletionBody,
+  looksLikeHtmlErrorPage,
+  stripReasoningBlocks,
+} from "./parse-response";
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -42,7 +48,8 @@ function parseSSELine(line: string): { content?: string; usage?: ChatCompletionR
   if (data === "[DONE]") return null;
   try {
     const chunk = JSON.parse(data);
-    const content = chunk.choices?.[0]?.delta?.content;
+    const choice = chunk.choices?.[0];
+    const content = choice?.delta?.content ?? choice?.message?.content;
     const usage = chunk.usage;
     return { content: typeof content === "string" ? content : undefined, usage };
   } catch {
@@ -53,9 +60,10 @@ function parseSSELine(line: string): { content?: string; usage?: ChatCompletionR
 async function readSSEStream(
   reader: any,
   callbacks: StreamCallbacks,
-): Promise<{ content: string; usage?: ChatCompletionResult["usage"] }> {
+): Promise<{ content: string; usage?: ChatCompletionResult["usage"]; rawBody: string }> {
   const decoder = new TextDecoder();
   let buffer = "";
+  let rawBody = "";
   let fullContent = "";
   let lastUsage: ChatCompletionResult["usage"] | undefined;
 
@@ -63,12 +71,16 @@ async function readSSEStream(
     const { done, value } = await reader.read();
     if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
+    const chunkText = decoder.decode(value, { stream: true });
+    rawBody += chunkText;
+    buffer += chunkText;
     const lines = buffer.split("\n");
     buffer = lines.pop() ?? "";
 
     for (const line of lines) {
-      const parsed = parseSSELine(line);
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith(":")) continue;
+      const parsed = parseSSELine(trimmedLine);
       if (!parsed) continue;
       if (parsed.content) {
         fullContent += parsed.content;
@@ -94,7 +106,15 @@ async function readSSEStream(
     }
   }
 
-  return { content: fullContent, usage: lastUsage };
+  if (!fullContent) {
+    const nonStreamContent = extractContentFromCompletionBody(rawBody);
+    if (nonStreamContent) {
+      fullContent = nonStreamContent;
+      callbacks.onToken(nonStreamContent);
+    }
+  }
+
+  return { content: fullContent, usage: lastUsage, rawBody };
 }
 
 function looksTruncated(content: string): boolean {
@@ -224,7 +244,7 @@ export class OpenAICompatibleClient {
         status: res.status,
         statusText: res.statusText,
         preview,
-        isHtml: preview.trim().startsWith("<"),
+        isHtml: looksLikeHtmlErrorPage(preview),
       });
 
       // Retry without response_format if provider doesn't support it
@@ -237,10 +257,10 @@ export class OpenAICompatibleClient {
         });
       }
 
-      if (preview.trim().startsWith("<")) {
+      if (looksLikeHtmlErrorPage(preview)) {
         throw new Error(
-          `Provider returned HTML instead of JSON (status ${res.status}). ` +
-            `This usually means the base URL or endpoint is wrong, or the provider does not support this API. ` +
+          `Upstream returned an HTML error page (status ${res.status}), not AI JSON. ` +
+            `Check base URL, proxy, or gateway configuration. ` +
             `Preview: ${preview.slice(0, 200)}`,
         );
       }
@@ -253,20 +273,24 @@ export class OpenAICompatibleClient {
     }
 
     const reader = res.body.getReader() as any;
-    const result = await readSSEStream(
+    const streamResult = await readSSEStream(
       reader,
       callbacks ?? { onToken: () => {} },
     );
+    const result = {
+      ...streamResult,
+      content: stripReasoningBlocks(streamResult.content),
+    };
 
-    // Defense: if content looks like HTML, something went wrong with streaming
-    if (result.content.trim().startsWith("<")) {
+    // Defense: reject actual HTML error pages, not model thinking tags like <think>
+    if (looksLikeHtmlErrorPage(result.content)) {
       const preview = result.content.slice(0, 500);
-      log("error", "Stream returned HTML instead of JSON", {
+      log("error", "Stream returned HTML error page instead of AI content", {
         preview: preview.slice(0, 200),
       });
       throw new Error(
-        `Provider returned HTML in stream instead of JSON. ` +
-          `The provider may not support SSE streaming. ` +
+        `Upstream returned an HTML error page in the stream, not AI JSON. ` +
+          `Check base URL, proxy, or gateway configuration. ` +
           `Preview: ${preview.slice(0, 200)}`,
       );
     }

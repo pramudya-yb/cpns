@@ -1,5 +1,6 @@
 import { OpenAICompatibleClient } from "./client";
 import { GenerationError } from "./errors";
+import { parseAiJsonResponse } from "./parse-response";
 import { buildQuickModePrompt } from "./prompts";
 import { repairAndParseQuestions } from "./repair";
 import { regenerateQuestions, buildRegenerationContext } from "./regenerate-questions";
@@ -76,28 +77,19 @@ export async function generateQuestionsQuick(
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(content);
-    log("info", "JSON parsed successfully (direct)");
+    parsed = parseAiJsonResponse(content);
+    log("info", "JSON parsed successfully");
   } catch (parseErr: any) {
-    log("warn", "Direct JSON parse failed, trying markdown strip", { error: parseErr.message });
-    const cleaned = content
-      .replace(/^```json\s*/, "")
-      .replace(/```\s*$/, "")
-      .trim();
-    try {
-      parsed = JSON.parse(cleaned);
-      log("info", "JSON parsed successfully after markdown strip");
-    } catch (stripErr: any) {
-      log("error", "JSON parse failed even after markdown strip", {
-        error: stripErr.message,
-        cleanedPreview: cleaned.slice(0, 500),
-        originalPreview: content.slice(0, 500),
-      });
-      throw new GenerationError(
-        `Failed to parse AI response as JSON: ${stripErr.message}. Preview: ${content.slice(0, 200)}`,
-        { tokensUsed },
-      );
-    }
+    log("error", "JSON parse failed", {
+      error: parseErr.message,
+      originalPreview: content.slice(0, 500),
+    });
+    throw new GenerationError(
+      parseErr.message.includes("Failed to parse AI response")
+        ? parseErr.message
+        : `Failed to parse AI response as JSON: ${parseErr.message}. Preview: ${content.slice(0, 200)}`,
+      { tokensUsed },
+    );
   }
 
   if (!parsed || typeof parsed !== "object") {

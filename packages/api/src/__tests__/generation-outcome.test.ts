@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
+  collectShardFailureCause,
+  formatGenerationErrorMessage,
   isNonRetryableProviderError,
   resolveGenerationJobOutcome,
   sectionsWithNoQuestions,
@@ -22,6 +24,14 @@ describe("isNonRetryableProviderError", () => {
 
   it("returns false for JSON parse failures", () => {
     expect(isNonRetryableProviderError(new Error("Failed to parse AI response as JSON"))).toBe(false);
+  });
+
+  it("detects upstream HTML error pages", () => {
+    expect(
+      isNonRetryableProviderError(
+        new Error("Upstream returned an HTML error page in the stream, not AI JSON."),
+      ),
+    ).toBe(true);
   });
 });
 
@@ -47,7 +57,7 @@ describe("resolveGenerationJobOutcome", () => {
     expect(outcome.errorMessage).toContain("WRITING");
   });
 
-  it("marks zero questions as failed", () => {
+  it("marks zero questions as failed without blaming provider when cause is unknown", () => {
     const outcome = resolveGenerationJobOutcome({
       requestedCount: 20,
       generatedCount: 0,
@@ -55,6 +65,40 @@ describe("resolveGenerationJobOutcome", () => {
     });
     expect(outcome.status).toBe("failed");
     expect(outcome.errorMessage).toContain("Tidak ada soal");
+    expect(outcome.errorMessage).not.toContain("Periksa model/API provider");
+  });
+
+  it("surfaces JSON parse cause instead of generic provider hint", () => {
+    const outcome = resolveGenerationJobOutcome({
+      requestedCount: 5,
+      generatedCount: 0,
+      failedSections: ["READING"],
+      cause: "Failed to parse AI response as JSON: Unexpected token. Preview: {broken",
+    });
+    expect(outcome.errorMessage).toContain("tidak valid JSON");
+    expect(outcome.errorMessage).toContain("Failed to parse AI response");
+    expect(outcome.errorMessage).not.toContain("Periksa model/API provider");
+  });
+});
+
+describe("formatGenerationErrorMessage", () => {
+  it("labels upstream provider failures clearly", () => {
+    const message = formatGenerationErrorMessage({
+      cause: "OpenAI-compatible API error 500: upstream timeout",
+      failedSections: ["READING"],
+    });
+    expect(message).toContain("Gagal menghubungi API provider");
+    expect(message).toContain("500");
+  });
+
+  it("detects legacy false-positive HTML guard on reasoning output", () => {
+    const message = formatGenerationErrorMessage({
+      cause:
+        "Provider returned HTML in stream instead of JSON. Preview: <think>planning",
+      failedSections: ["READING"],
+    });
+    expect(message).toContain("reasoning tidak kompatibel");
+    expect(message).not.toContain("Gagal menghubungi API provider");
   });
 });
 
