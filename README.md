@@ -222,6 +222,12 @@ Run from the **repository root**:
 | `bun run db:start` | Start PostgreSQL + Redis (Docker Compose) |
 | `bun run db:stop` | Stop Docker Compose services |
 
+## Deployment
+
+Production deploys use **two Coolify applications** from this repo (web + API server), plus **PostgreSQL** and **Redis**. The server does not serve the frontend build; the web app calls the API via `VITE_SERVER_URL`.
+
+See **[`deploy/COOLIFY.md`](./deploy/COOLIFY.md)** for step-by-step Coolify setup, environment variables, Nixpacks configs (`deploy/server.nixpacks.toml`, `deploy/web.nixpacks.toml`), and a first-deploy checklist.
+
 ## Development
 
 ### Type checking

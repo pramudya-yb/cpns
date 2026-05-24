@@ -1,0 +1,14 @@
+# Nixpacks config for the Labas API server (Hono + tRPC).
+# Point Coolify to this file: NIXPACKS_CONFIG_FILE=deploy/server.nixpacks.toml
+
+[phases.setup]
+nixPkgs = ["...", "bun"]
+
+[phases.install]
+cmds = ["bun install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["bunx turbo build -F server"]
+
+[start]
+cmd = "bun run --cwd apps/server start"

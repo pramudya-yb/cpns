@@ -1,0 +1,16 @@
+# Nixpacks config for the Labas web app (Vite SPA).
+# Point Coolify to this file: NIXPACKS_CONFIG_FILE=deploy/web.nixpacks.toml
+#
+# Requires VITE_SERVER_URL at build time (enable "Available at Buildtime" in Coolify).
+
+[phases.setup]
+nixPkgs = ["...", "bun"]
+
+[phases.install]
+cmds = ["bun install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["bunx turbo build -F web"]
+
+[start]
+cmd = "bun run --cwd apps/web start:prod"
