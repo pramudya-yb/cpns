@@ -67,6 +67,39 @@ function TakeTestComponent() {
     startQuestionTimer,
   } = useTestSession(packageId);
 
+  const totalQuestions = pkg?.sections.reduce((sum: number, sec) => sum + sec.questions.length, 0) ?? 0;
+  const answeredCount = Object.keys(answers).length;
+
+  const handleStartWithTracking = useCallback(async () => {
+    await handleStart();
+    trackUmamiEvent(AnalyticsEvent.ATTEMPT_START, {
+      exam_type: pkg?.examTypeName ?? "unknown",
+      question_count: totalQuestions,
+    });
+  }, [handleStart, pkg?.examTypeName, totalQuestions]);
+
+  const handleFinishWithTracking = useCallback(async () => {
+    const result = await handleFinish();
+    if (result) {
+      trackUmamiEvent(AnalyticsEvent.ATTEMPT_FINISH, {
+        exam_type: pkg?.examTypeName ?? "unknown",
+        score: result.totalScore,
+        max_score: result.maxScore,
+        percentage: result.percentage,
+        time_elapsed_sec: timeElapsed,
+      });
+    }
+  }, [handleFinish, pkg?.examTypeName, timeElapsed]);
+
+  const handleAbandonWithTracking = useCallback(async () => {
+    await handleAbandon();
+    trackUmamiEvent(AnalyticsEvent.ATTEMPT_ABANDON, {
+      exam_type: pkg?.examTypeName ?? "unknown",
+      questions_answered: answeredCount,
+      total_questions: totalQuestions,
+    });
+  }, [handleAbandon, pkg?.examTypeName, answeredCount, totalQuestions]);
+
   if (packageQuery.isLoading || activeAttemptQuery.isLoading) {
     return (
       <div className="min-h-screen pt-8 pb-32 px-6 md:px-12 lg:px-16 max-w-4xl mx-auto bg-[var(--warm-cream)]">
@@ -89,39 +122,6 @@ function TakeTestComponent() {
       </div>
     );
   }
-
-  const totalQuestions = pkg.sections.reduce((sum: number, sec) => sum + sec.questions.length, 0);
-  const answeredCount = Object.keys(answers).length;
-
-  const handleStartWithTracking = useCallback(async () => {
-    await handleStart();
-    trackUmamiEvent(AnalyticsEvent.ATTEMPT_START, {
-      exam_type: pkg.examTypeName ?? "unknown",
-      question_count: totalQuestions,
-    });
-  }, [handleStart, pkg.examTypeName, totalQuestions]);
-
-  const handleFinishWithTracking = useCallback(async () => {
-    const result = await handleFinish();
-    if (result) {
-      trackUmamiEvent(AnalyticsEvent.ATTEMPT_FINISH, {
-        exam_type: pkg.examTypeName ?? "unknown",
-        score: result.totalScore,
-        max_score: result.maxScore,
-        percentage: result.percentage,
-        time_elapsed_sec: timeElapsed,
-      });
-    }
-  }, [handleFinish, pkg.examTypeName, timeElapsed]);
-
-  const handleAbandonWithTracking = useCallback(async () => {
-    await handleAbandon();
-    trackUmamiEvent(AnalyticsEvent.ATTEMPT_ABANDON, {
-      exam_type: pkg.examTypeName ?? "unknown",
-      questions_answered: answeredCount,
-      total_questions: totalQuestions,
-    });
-  }, [handleAbandon, pkg.examTypeName, answeredCount, totalQuestions]);
 
   // Start screen
   if (!isStarted) {
