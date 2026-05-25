@@ -1,4 +1,4 @@
-import { eq, or, isNull, SQL } from "drizzle-orm";
+import { eq, or, SQL } from "drizzle-orm";
 
 interface VisibilityTable {
   isPublic: any;

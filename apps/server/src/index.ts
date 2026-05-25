@@ -3,7 +3,7 @@ import { createContext } from "@labas/api/context";
 import { appRouter } from "@labas/api/routers/index";
 import { auth } from "@labas/auth";
 import { env } from "@labas/env/server";
-import { logger, withRequestId } from "@labas/api/logger";
+import { withRequestId } from "@labas/api/logger";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 

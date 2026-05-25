@@ -14,7 +14,7 @@ import {
 import { paginationSchema, paginateDefaults } from "../lib/pagination";
 import { assertOwnership } from "../lib/ownership";
 import { buildVisibilityCondition } from "../lib/visibility";
-import { throwNotFound, throwBadRequest } from "../lib/errors";
+import { throwNotFound } from "../lib/errors";
 
 export const packageRouter = router({
   list: publicProcedure

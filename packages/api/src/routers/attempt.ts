@@ -104,7 +104,7 @@ function calculatePartialCredit(format: string, userAnswer: string, correctAnswe
 }
 
 // ── Word Count Validator ──
-function validateWordCount(answer: string, minWords = 1, maxWords = 500): { isValid: boolean; wordCount: number } {
+export function validateWordCount(answer: string, minWords = 1, maxWords = 500): { isValid: boolean; wordCount: number } {
   const trimmed = answer.trim();
   if (!trimmed) return { isValid: false, wordCount: 0 };
   const words = trimmed.split(/\s+/).filter(Boolean);

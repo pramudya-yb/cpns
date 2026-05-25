@@ -13,8 +13,7 @@ export function assertOwnership(row: OwnedRow | null | undefined, userId: string
 export function ownershipFilter<TTable extends Record<string, any>>(
   table: TTable,
   userId: string,
-  idColumn: keyof TTable,
   creatorColumn: keyof TTable,
 ) {
-  return eq(table[idColumn as string], userId);
+  return eq(table[creatorColumn as string], userId);
 }

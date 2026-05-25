@@ -20,6 +20,6 @@ export function paginateDefaults(input?: PaginationInput) {
   };
 }
 
-export function countSql(column: any) {
+export function countSql() {
   return sql<number>`count(*)::int`;
 }
