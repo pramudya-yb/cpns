@@ -10,6 +10,7 @@ import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
+import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 
 import Loader from "./loader";
 
@@ -35,6 +36,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: async () => {
+            trackUmamiEvent(AnalyticsEvent.SIGN_UP);
             try {
               await sendOtpMutation.mutateAsync({ email: value.email });
             } catch {}

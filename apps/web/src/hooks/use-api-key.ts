@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { encryptText, decryptText } from "@/lib/crypto";
+import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 
 const STORAGE_KEY = "labas_api_keys_v2";
 
@@ -49,6 +50,7 @@ export function useApiKeys() {
     async (config: Omit<ApiKeyConfig, "id">) => {
       const next = [...configs, { ...config, id: generateId() }];
       await persist(next);
+      trackUmamiEvent(AnalyticsEvent.API_KEY_ADDED, { provider: config.provider });
       return next[next.length - 1].id;
     },
     [configs, persist],
@@ -72,8 +74,12 @@ export function useApiKeys() {
 
   const removeConfig = useCallback(
     async (id: string) => {
+      const target = configs.find((c) => c.id === id);
       const next = configs.filter((c) => c.id !== id);
       await persist(next);
+      if (target) {
+        trackUmamiEvent(AnalyticsEvent.API_KEY_REMOVED, { provider: target.provider });
+      }
     },
     [configs, persist],
   );

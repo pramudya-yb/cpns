@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useTestSession } from "@/hooks/use-test-session";
+import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 import { Button } from "@labas/ui/components/button";
 import { Card, CardContent } from "@labas/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
@@ -92,6 +93,36 @@ function TakeTestComponent() {
   const totalQuestions = pkg.sections.reduce((sum: number, sec) => sum + sec.questions.length, 0);
   const answeredCount = Object.keys(answers).length;
 
+  const handleStartWithTracking = useCallback(async () => {
+    await handleStart();
+    trackUmamiEvent(AnalyticsEvent.ATTEMPT_START, {
+      exam_type: pkg.examTypeName ?? "unknown",
+      question_count: totalQuestions,
+    });
+  }, [handleStart, pkg.examTypeName, totalQuestions]);
+
+  const handleFinishWithTracking = useCallback(async () => {
+    const result = await handleFinish();
+    if (result) {
+      trackUmamiEvent(AnalyticsEvent.ATTEMPT_FINISH, {
+        exam_type: pkg.examTypeName ?? "unknown",
+        score: result.totalScore,
+        max_score: result.maxScore,
+        percentage: result.percentage,
+        time_elapsed_sec: timeElapsed,
+      });
+    }
+  }, [handleFinish, pkg.examTypeName, timeElapsed]);
+
+  const handleAbandonWithTracking = useCallback(async () => {
+    await handleAbandon();
+    trackUmamiEvent(AnalyticsEvent.ATTEMPT_ABANDON, {
+      exam_type: pkg.examTypeName ?? "unknown",
+      questions_answered: answeredCount,
+      total_questions: totalQuestions,
+    });
+  }, [handleAbandon, pkg.examTypeName, answeredCount, totalQuestions]);
+
   // Start screen
   if (!isStarted) {
     return (
@@ -144,7 +175,7 @@ function TakeTestComponent() {
           )}
 
           <Button
-            onClick={handleStart}
+            onClick={handleStartWithTracking}
             disabled={startPending}
             className="bg-[var(--clay-black)] text-[var(--pure-white)] hover:bg-[var(--warm-charcoal)] clay-hover rounded-[var(--radius-lg)] px-8 py-6 text-lg"
           >
@@ -174,7 +205,7 @@ function TakeTestComponent() {
         <div className="text-center py-20">
           <MaterialIcon name="check_circle" className="text-6xl text-[var(--matcha-600)] mx-auto mb-4" />
           <p className="text-xl font-headline font-bold text-[var(--clay-black)]">Semua section selesai!</p>
-          <Button onClick={handleFinish} className="mt-6 bg-[var(--clay-black)] text-[var(--pure-white)] clay-hover rounded-[var(--radius-lg)]">
+          <Button onClick={handleFinishWithTracking} className="mt-6 bg-[var(--clay-black)] text-[var(--pure-white)] clay-hover rounded-[var(--radius-lg)]">
             Selesaikan & Lihat Hasil
           </Button>
         </div>
@@ -193,8 +224,8 @@ function TakeTestComponent() {
       timeElapsed={timeElapsed}
       answeredCount={answeredCount}
       totalQuestions={totalQuestions}
-      onFinish={handleFinish}
-      onAbandon={handleAbandon}
+      onFinish={handleFinishWithTracking}
+      onAbandon={handleAbandonWithTracking}
       isFinished={isFinished}
       submittingQId={submittingQId}
       markedQuestions={markedQuestions}

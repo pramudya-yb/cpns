@@ -72,6 +72,7 @@ bun run db:push          # Push schema changes to PostgreSQL
 bun run db:studio        # Open Drizzle Studio UI
 bun run db:migrate       # Run migrations
 bun run db:generate      # Generate migration files
+bun run db:seed          # Seed reference data (exam types, etc.)
 bun run db:start         # Start local DB (if configured)
 bun run db:stop          # Stop local DB
 
@@ -116,9 +117,117 @@ bun run build            # Build all packages
 - App-level error boundary is in `__root.tsx` using `<ErrorFallback>` — route-level error boundaries via `errorComponent` route option.
 - Lazy-loaded route components use the `.lazy.tsx` pattern: route file is thin, heavy component lives in `components/routes/*Page.tsx` wrapped in `Suspense`.
 
+### Sticky Detail Page Header Pattern
+
+Detail pages with long scrollable content (e.g. `package.$id.index.tsx`, `attempt.$id.tsx`) use a **sticky top header** pattern:
+
+```tsx
+<div className="min-h-screen pb-32 bg-[var(--warm-cream)]">
+  {/* Sticky header */}
+  <div className="sticky top-0 z-20 bg-[var(--warm-cream)]/95 backdrop-blur-sm border-b border-[var(--oat-border)] shadow-sm">
+    <div className="px-6 md:px-12 lg:px-16 max-w-4xl mx-auto pt-4 pb-4">
+      {/* Compact breadcrumb — text-xs, truncated title */}
+      {/* Title row (left) + action buttons (right) */}
+      {/* Stats row — text-xs */}
+    </div>
+  </div>
+  {/* Scrollable content */}
+  <div className="px-6 md:px-12 lg:px-16 max-w-4xl mx-auto pt-8">
+    ...
+  </div>
+</div>
+```
+
+Rules:
+- Primary CTA ("Mulai Latihan", "Coba Lagi") and secondary actions (Edit, Share) live in the sticky header — **never only at the bottom** of a long page.
+- Breadcrumb inside the header is `text-xs` and truncates the current page title to `max-w-[240px]`.
+- On small screens (`sm:` breakpoint), button text labels hide (`hidden sm:inline`) leaving only icons.
+
+### Public/Private Toggle Hover Pattern
+
+Any button that toggles visibility between public and private must reveal **intent on hover** (what will happen, not what it currently is):
+
+```tsx
+<button
+  onClick={onTogglePublic}
+  aria-label={isPublic ? "Jadikan privat" : "Jadikan publik"}
+  className={`group ... ${isPublic
+    ? "bg-[var(--matcha-300)] text-[var(--matcha-800)] hover:bg-[var(--pomegranate-400)]/15 hover:text-[var(--pomegranate-600)]"
+    : "bg-[var(--slushie-500)]/15 text-[var(--slushie-800)] hover:bg-[var(--matcha-300)] hover:text-[var(--matcha-800)]"
+  }`}
+>
+  <MaterialIcon name={isPublic ? "public" : "lock"} className="text-xs group-hover:hidden" />
+  <MaterialIcon name={isPublic ? "lock" : "public"} className="text-xs hidden group-hover:inline" />
+  <span className="group-hover:hidden">{isPublic ? "Publik" : "Privat"}</span>
+  <span className="hidden group-hover:inline">{isPublic ? "Jadikan Privat" : "Jadikan Publik"}</span>
+</button>
+```
+
+This pattern is used in `QuestionCard.tsx` and `PackageCard.tsx`.
+
+### Component Folder Conventions
+
+Large "card" components for list items are extracted into their own folder and file, **not** inlined inside the page component:
+
+| Domain | Card component | Used in |
+|--------|---------------|---------|
+| Questions | `apps/web/src/components/bank/QuestionCard.tsx` | `BankPage.tsx` |
+| Packages | `apps/web/src/components/packages/PackageCard.tsx` | `PackagesPage.tsx` |
+
+When a list item card grows beyond ~40 lines of JSX, extract it. Pass all state through props; the card must be stateless (no data fetching).
+
+### CalloutCard
+
+`apps/web/src/components/bank/CalloutCard.tsx` is a reusable banner for "N items are private, publish them all" prompts. Use the `label` prop to customise the noun:
+
+```tsx
+<CalloutCard count={privateCount} label="soal" onPublishAll={handlePublishAllPrivate} />
+<CalloutCard count={privateCount} label="paket" onPublishAll={handlePublishAllPrivate} />
+```
+
+`count` should come from a **dedicated query with `limit: 1`** (fetches only the `total` field), **not** from the locally accumulated infinite-scroll array — those counts are partial and misleading.
+
 ---
 
-## 5b. Frontend Accessibility Conventions
+## 5b. Route Shell & Layout Modes
+
+### Route Shell System
+
+Every route declares its layout via `staticData` from `apps/web/src/lib/route-shell.ts`. The root layout (`__root.tsx`) reads this to decide which shell to render:
+
+| Shell | When to use | What renders |
+|-------|-------------|-------------|
+| `routeShell.app` | Authenticated app pages | Sidebar + `<main id="main-content">` + SkipLink |
+| `routeShell.public` | Landing, login, auth flows, 404 | Bare `min-h-screen` wrapper, no sidebar |
+| `routeShell.fullscreen` | Test-taking, immersive UIs | `h-screen overflow-y-auto`, no sidebar |
+
+Usage in a route file:
+```tsx
+import { routeShell } from "@/lib/route-shell";
+
+export const Route = createFileRoute("/my-route")({
+  staticData: routeShell.app, // or .public / .fullscreen
+  ...
+});
+```
+
+**Rules:**
+- **Always** set `staticData` on every route. Routes without it default to `"app"` shell (sidebar shown).
+- Auth routes (`/login`, `/forgot-password`, `/verify-email`, `/setup-avatar`) use `routeShell.public`.
+- Test routes (`/package/$id/take`, `/package/$id/attempt/$attemptId`) use `routeShell.fullscreen`.
+- Admin routes (`/admin`, `/admin/*`) use `routeShell.fullscreen`.
+
+### Route Structure Conventions
+
+- **`/`** — Public landing page (`index.tsx` + `index.lazy.tsx`). Redirects logged-in users to `/dashboard`.
+- **`/dashboard`** — Authenticated home page (`dashboard.tsx`). Redirects unauthenticated users to `/login`.
+- **`/landing`** — Legacy redirect → `/` (keep for backward compat, do not remove).
+- **`/$.tsx`** — Catch-all 404 route. Uses `routeShell.public` so no sidebar appears. Renders `<NotFoundPage>`.
+- **Do NOT** put a `notFoundComponent` in `__root.tsx`. The 404 is handled exclusively by the splat route `$.tsx`.
+
+---
+
+## 5c. Frontend Accessibility Conventions
 
 - **Skip link**: Root layout in `__root.tsx` has a hidden `<SkipLink>` that appears on Tab press, linking to `#main-content` on the `<main>` element.
 - **Icon-only buttons**: Every `<button>` or `<Button>` with only an icon (no visible text) **must** have `aria-label`. The icon element (`<MaterialIcon>`, `<span>`) should NOT have `aria-hidden="true"` unless decorative.
@@ -276,4 +385,4 @@ bun run build            # Build all packages
 
 ---
 
-_Last updated: 2026-05-19_
+_Last updated: 2026-05-25_

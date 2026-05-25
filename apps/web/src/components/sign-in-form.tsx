@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
+import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 
 import Loader from "./loader";
 
@@ -30,6 +31,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         },
         {
           onSuccess: () => {
+            trackUmamiEvent(AnalyticsEvent.SIGN_IN);
             navigate({ to: "/dashboard" });
             toast.success("Sign in successful");
           },

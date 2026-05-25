@@ -212,11 +212,12 @@ export function useTestSession(packageId: string, existingAttemptId?: string) {
     if (!attemptId) return;
     setIsFinished(true);
     localStorage.setItem("pendingDonationPrompt", "exam");
-    await finishMutation.mutateAsync({ attemptId });
+    const result = await finishMutation.mutateAsync({ attemptId });
     clearElapsedTime(attemptId);
     clearMarkedQuestions(attemptId);
     clearSectionIdx(attemptId);
     navigate({ to: "/attempt/$id", params: { id: attemptId } });
+    return result;
   }, [attemptId, finishMutation, navigate]);
 
   const handleAbandon = useCallback(async () => {

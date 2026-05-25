@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useApiKeys } from "@/hooks/use-api-key";
 import { useGenerationJobs, type CompletedResult } from "@/hooks/use-generation-jobs";
+import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 import { Button } from "@labas/ui/components/button";
 import {
   Select,
@@ -180,6 +181,18 @@ export function RouteComponent() {
           model: selectedConfig!.modelName,
           maxTokens: selectedConfig!.maxTokens ?? 16384,
         };
+
+    const eventName = mode === "agentic" ? AnalyticsEvent.AI_GENERATE_AGENTIC : AnalyticsEvent.AI_GENERATE_QUICK;
+    trackUmamiEvent(eventName, {
+      exam_type: examType,
+      mode,
+      sections: selectedSections,
+      formats: selectedFormats,
+      question_count: questionCount,
+      topics: selectedTopics,
+      difficulty: difficulty + 1,
+      use_free_credits: useFreeCredits,
+    });
 
     type GenerateMutateInput = Parameters<typeof generate.mutate>[0];
     generate.mutate({

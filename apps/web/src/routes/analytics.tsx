@@ -1,7 +1,8 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { useAnalytics } from "@/hooks/use-analytics";
+import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { OverviewCards } from "@/components/analytics/OverviewCards";
 import { WeaknessPanel } from "@/components/analytics/WeaknessPanel";
@@ -39,6 +40,10 @@ function AnalyticsComponent() {
     timeAnalytics,
     isLoading,
   } = useAnalytics();
+
+  useEffect(() => {
+    trackUmamiEvent(AnalyticsEvent.VIEW_ANALYTICS);
+  }, []);
 
   if (isLoading) {
     return (
