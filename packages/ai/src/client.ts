@@ -1,5 +1,6 @@
 import {
   extractContentFromCompletionBody,
+  isLikelyTruncatedJson,
   looksLikeHtmlErrorPage,
   stripReasoningBlocks,
 } from "./parse-response";
@@ -117,22 +118,7 @@ async function readSSEStream(
   return { content: fullContent, usage: lastUsage, rawBody };
 }
 
-function looksTruncated(content: string): boolean {
-  const trimmed = content.trim();
-  if (trimmed.length === 0) return false;
-  // JSON object/array should end with } or ]
-  const lastChar = trimmed[trimmed.length - 1];
-  if (lastChar === "}" || lastChar === "]") return false;
-  // Check for common truncation signatures
-  const unterminated = /Unterminated string|Unexpected end of JSON|Unexpected (token|EOF)|Expected ('.*'|".*")/i;
-  try {
-    JSON.parse(trimmed);
-    return false;
-  } catch (err: any) {
-    if (unterminated.test(err.message)) return true;
-  }
-  return false;
-}
+const MAX_TRUNCATION_RETRIES = 2;
 
 function isResponseFormatError(status: number, text: string): boolean {
   if (status !== 400 && status !== 422) return false;
@@ -186,7 +172,11 @@ export class OpenAICompatibleClient {
   private async _doChatCompletion(
     opts: ChatCompletionOptions,
     callbacks: StreamCallbacks | undefined,
-    ctx: { attempt: number; retriedForTruncation?: boolean; retriedForResponseFormat?: boolean },
+    ctx: {
+      attempt: number;
+      truncationRetries?: number;
+      retriedForResponseFormat?: boolean;
+    },
   ): Promise<ChatCompletionResult> {
     let hostname: string;
     try {
@@ -299,20 +289,21 @@ export class OpenAICompatibleClient {
       throw new Error("Empty response from AI");
     }
 
-    // Truncation detection + retry
-    if (!ctx.retriedForTruncation && looksTruncated(result.content)) {
-      const newMaxTokens = opts.max_tokens
-        ? Math.min(Math.round(opts.max_tokens * 1.5), 128_000)
-        : 16_384;
+    // Truncation detection + retry (incomplete JSON mid-stream)
+    const truncationRetries = ctx.truncationRetries ?? 0;
+    if (truncationRetries < MAX_TRUNCATION_RETRIES && isLikelyTruncatedJson(result.content)) {
+      const baseTokens = opts.max_tokens && opts.max_tokens > 0 ? opts.max_tokens : 8_192;
+      const newMaxTokens = Math.min(Math.round(baseTokens * 1.75), 128_000);
       log("warn", "Response looks truncated, retrying with more tokens", {
         originalLength: result.content.length,
         originalMaxTokens: opts.max_tokens,
         newMaxTokens,
+        truncationRetry: truncationRetries + 1,
       });
       return this._doChatCompletion(
         { ...opts, max_tokens: newMaxTokens },
         callbacks,
-        { ...ctx, attempt: ctx.attempt + 1, retriedForTruncation: true },
+        { ...ctx, attempt: ctx.attempt + 1, truncationRetries: truncationRetries + 1 },
       );
     }
 

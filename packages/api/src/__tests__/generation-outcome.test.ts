@@ -68,6 +68,15 @@ describe("resolveGenerationJobOutcome", () => {
     expect(outcome.errorMessage).not.toContain("Periksa model/API provider");
   });
 
+  it("labels truncated JSON with actionable guidance", () => {
+    const message = formatGenerationErrorMessage({
+      cause: "JSON response was truncated before completion (usually max_tokens too low). Preview: {\"title\":",
+      failedSections: ["READING"],
+    });
+    expect(message).toContain("terpotong");
+    expect(message).toContain("Max Tokens");
+  });
+
   it("surfaces JSON parse cause instead of generic provider hint", () => {
     const outcome = resolveGenerationJobOutcome({
       requestedCount: 5,

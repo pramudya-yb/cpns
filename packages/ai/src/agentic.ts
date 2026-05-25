@@ -53,7 +53,7 @@ function calculateMaxTokens(
   const base = userMax > 0 ? userMax : 16_384;
   switch (step) {
     case "passage":
-      return Math.min(base, 8_192);
+      return Math.min(Math.max(base, 6_000), 16_384);
     case "validate":
       return Math.min(base, 4_096);
     case "self_validate":

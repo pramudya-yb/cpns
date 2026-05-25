@@ -46,6 +46,13 @@ export function formatGenerationErrorMessage(input: {
     return `Model reasoning tidak kompatibel dengan parser Labas.${hint} Coba non-reasoning model, atau update server ke versi terbaru.`;
   }
 
+  if (
+    lower.includes("json response was truncated") ||
+    lower.includes("unterminated string")
+  ) {
+    return `Respons model terpotong sebelum JSON selesai (biasanya max tokens terlalu kecil).${hint} Naikkan Max Tokens di Settings atau kurangi jumlah soal/format.`;
+  }
+
   if (lower.includes("failed to parse ai response") || lower.includes("invalid json response")) {
     return `Model merespons, tapi output tidak valid JSON.${hint} ${truncate(cause, 280)}`;
   }

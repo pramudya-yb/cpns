@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   extractContentFromCompletionBody,
+  isLikelyTruncatedJson,
   parseAiJsonResponse,
   stripReasoningBlocks,
 } from "../parse-response";
@@ -46,6 +47,13 @@ describe("parseAiJsonResponse", () => {
     expect(() => parseAiJsonResponse("<think>only thinking")).toThrow(
       "Empty response from AI",
     );
+  });
+
+  it("detects truncated JSON and throws a clear truncation error", () => {
+    const truncated =
+      '{"title":"The Global Rise of Coffee Culture","passage":"Coffee has a rich history in the highl';
+    expect(isLikelyTruncatedJson(truncated)).toBe(true);
+    expect(() => parseAiJsonResponse(truncated)).toThrow("JSON response was truncated");
   });
 });
 

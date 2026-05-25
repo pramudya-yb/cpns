@@ -29,6 +29,36 @@ export function stripReasoningBlocks(content: string): string {
   return text.trim();
 }
 
+const TRUNCATED_JSON_ERROR = "JSON response was truncated";
+
+/** Detect incomplete JSON — valid start but stream/token limit cut off before closing braces. */
+export function isLikelyTruncatedJson(content: string): boolean {
+  const trimmed = stripReasoningBlocks(content).trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return false;
+
+  if (trimmed.endsWith("}") || trimmed.endsWith("]")) {
+    try {
+      JSON.parse(trimmed);
+      return false;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return /unterminated string|unexpected eof|unexpected end|expected .* at end/i.test(msg);
+    }
+  }
+
+  try {
+    JSON.parse(trimmed);
+    return false;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/unterminated string|unexpected eof|unexpected end|expected .* at end/i.test(msg)) {
+      return true;
+    }
+  }
+
+  return true;
+}
+
 function extractJsonCandidate(content: string): string {
   const trimmed = content.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -78,10 +108,18 @@ export function parseAiJsonResponse(content: string): unknown {
     }
   }
 
+  if (isLikelyTruncatedJson(normalized)) {
+    throw new Error(
+      `${TRUNCATED_JSON_ERROR} before completion (usually max_tokens too low). Preview: ${normalized.slice(0, 200)}`,
+    );
+  }
+
   throw new Error(
     `Failed to parse AI response as JSON: ${lastError?.message ?? "unknown error"}. Preview: ${normalized.slice(0, 200)}`,
   );
 }
+
+export { TRUNCATED_JSON_ERROR };
 
 export function extractContentFromCompletionBody(body: string): string | null {
   const trimmed = body.trim();
