@@ -5,7 +5,7 @@ import * as schema from "@labas/db";
 import { db } from "@labas/db";
 import { paginationSchema, paginateDefaults } from "../lib/pagination";
 import { throwNotFound, throwForbidden, throwBadRequest } from "../lib/errors";
-import { getUserCredit, getLastRefillAt, getPoolUsage, getConfig, setConfig } from "../lib/credit";
+import { getUserCredit, getLastRefillAt, getPoolUsage, getConfig, setConfig, autoRefillIfEligible } from "../lib/credit";
 import { env } from "@labas/env/server";
 
 function audit(adminUserId: string, action: string, targetUserId: string | null, details?: Record<string, unknown>) {
@@ -24,7 +24,16 @@ export const adminRouter = router({
   }),
 
   getMyCredit: protectedProcedure.query(async ({ ctx }) => {
-    const credit = await getUserCredit(ctx.session.user.id);
+    let credit = await getUserCredit(ctx.session.user.id);
+
+    // Proactively grant first free-credit refill so new users see balance before clicking Generate.
+    if (credit.tokenBalance <= 0) {
+      const refill = await autoRefillIfEligible(ctx.session.user.id);
+      if (refill.refilled && refill.newBalance !== undefined) {
+        credit = { ...credit, tokenBalance: refill.newBalance };
+      }
+    }
+
     const lastRefill = await getLastRefillAt(ctx.session.user.id);
     const cooldownMs = 7 * 24 * 60 * 60 * 1000;
     const lastRefillTime = lastRefill?.createdAt ? new Date(lastRefill.createdAt).getTime() : 0;

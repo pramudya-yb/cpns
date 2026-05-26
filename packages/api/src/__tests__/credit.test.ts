@@ -20,6 +20,8 @@ const MOCK_ENV = {
   PLATFORM_AI_BASE_URL: "https://api.openai.com/v1",
   PLATFORM_AI_MODEL: "gpt-4o-mini",
   DEFAULT_SIGNUP_CREDIT_TOKENS: "50000",
+  FREE_CREDITS_ENABLED: true,
+  FREE_CREDITS_MAX_POOL: 1000000,
 };
 
 mock.module("@labas/env/server", () => ({
@@ -161,6 +163,20 @@ describe("Credit Utility", () => {
       const [row] = await db.select().from(schema.userCredit).where(eq(schema.userCredit.userId, uid)).limit(1);
       expect(row).toBeDefined();
       expect(row.tokenBalance).toBe(0);
+    });
+  });
+
+  describe("autoRefillIfEligible", () => {
+    it("grants initial free credits to new user with zero balance", async () => {
+      const uid = makeUserId("refill");
+      await db.insert(schema.user).values({ id: uid, name: uid, email: `${uid}@test.com` });
+
+      const result = await credit.autoRefillIfEligible(uid);
+      expect(result.refilled).toBe(true);
+      expect(result.newBalance).toBe(50000);
+
+      const info = await credit.getUserCredit(uid);
+      expect(info.tokenBalance).toBe(50000);
     });
   });
 });

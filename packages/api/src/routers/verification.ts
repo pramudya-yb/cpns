@@ -7,6 +7,7 @@ import { eq, and, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { sendOtpEmail } from "../lib/email";
+import { autoRefillIfEligible } from "../lib/credit";
 import { publicProcedure, router } from "../index";
 import { checkRateLimit } from "../lib/rate-limit";
 
@@ -87,6 +88,16 @@ export const verificationRouter = router({
         .where(eq(user.email, input.email));
 
       await db.delete(verification).where(eq(verification.id, record.id));
+
+      const [verifiedUser] = await db
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, input.email))
+        .limit(1);
+
+      if (verifiedUser) {
+        await autoRefillIfEligible(verifiedUser.id);
+      }
 
       return { success: true };
     }),

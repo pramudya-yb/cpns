@@ -9,6 +9,7 @@ import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 import Loader from "./loader";
 
@@ -110,13 +111,13 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                       Lupa password?
                     </Link>
                   </div>
-                  <Input
+                  <PasswordInput
                     id={field.name}
                     name={field.name}
-                    type="password"
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    onChange={field.handleChange}
+                    autoComplete="current-password"
                   />
                   {field.state.meta.errors.map((error) => (
                     <p key={error?.message} className="text-red-500 text-sm">
