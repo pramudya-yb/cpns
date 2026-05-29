@@ -1,4 +1,4 @@
-import { createDb } from "@labas/db";
+import { db } from "@labas/db";
 import { verification, user, account } from "@labas/db/schema/auth";
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
@@ -10,6 +10,7 @@ import { sendOtpEmail } from "../lib/email";
 import { autoRefillIfEligible } from "../lib/credit";
 import { publicProcedure, router } from "../index";
 import { checkRateLimit } from "../lib/rate-limit";
+import { validateTurnstileToken } from "../lib/turnstile";
 
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
@@ -24,12 +25,12 @@ function genericOtpResponse() {
 
 export const verificationRouter = router({
   sendVerificationOtp: publicProcedure
-    .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ input }) => {
-      await checkRateLimit({ key: `otp-send:email:${input.email}`, limit: 3, windowMs: 300_000 });
-      await checkRateLimit({ key: `otp-send:ip:email`, limit: 20, windowMs: 900_000 });
-
-      const db = createDb();
+    .input(z.object({ email: z.string().email(), turnstileToken: z.string().optional() }))
+    .mutation(async ({ input, ctx }) => {
+      const ip = ctx.ip ?? "unknown";
+      await checkRateLimit({ key: `otp-send:email:${input.email}`, limit: 3, windowMs: 300_000, strict: true });
+      await checkRateLimit({ key: `otp-send:ip:${ip}:email`, limit: 20, windowMs: 900_000, strict: true });
+      await validateTurnstileToken(input.turnstileToken);
 
       const [existingUser] = await db
         .select({ id: user.id, emailVerified: user.emailVerified })
@@ -60,10 +61,10 @@ export const verificationRouter = router({
 
   verifyEmailOtp: publicProcedure
     .input(z.object({ email: z.string().email(), otp: z.string().length(6) }))
-    .mutation(async ({ input }) => {
-      await checkRateLimit({ key: `otp-verify:email:${input.email}`, limit: 10, windowMs: 300_000 });
-
-      const db = createDb();
+    .mutation(async ({ input, ctx }) => {
+      const ip = ctx.ip ?? "unknown";
+      await checkRateLimit({ key: `otp-verify:email:${input.email}`, limit: 10, windowMs: 300_000, strict: true });
+      await checkRateLimit({ key: `otp-verify:ip:${ip}`, limit: 30, windowMs: 300_000, strict: true });
 
       const identifier = `email-verification:${input.email}`;
       const [record] = await db
@@ -103,12 +104,12 @@ export const verificationRouter = router({
     }),
 
   sendPasswordResetOtp: publicProcedure
-    .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ input }) => {
-      await checkRateLimit({ key: `otp-send:email:${input.email}`, limit: 3, windowMs: 300_000 });
-      await checkRateLimit({ key: `otp-send:ip:reset`, limit: 20, windowMs: 900_000 });
-
-      const db = createDb();
+    .input(z.object({ email: z.string().email(), turnstileToken: z.string().optional() }))
+    .mutation(async ({ input, ctx }) => {
+      const ip = ctx.ip ?? "unknown";
+      await checkRateLimit({ key: `otp-send:email:${input.email}`, limit: 3, windowMs: 300_000, strict: true });
+      await checkRateLimit({ key: `otp-send:ip:${ip}:reset`, limit: 20, windowMs: 900_000, strict: true });
+      await validateTurnstileToken(input.turnstileToken);
 
       const [existingUser] = await db
         .select({ id: user.id })
@@ -145,10 +146,10 @@ export const verificationRouter = router({
         newPassword: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/, "Password must be at least 8 characters with uppercase, lowercase, and number"),
       }),
     )
-    .mutation(async ({ input }) => {
-      await checkRateLimit({ key: `otp-reset:email:${input.email}`, limit: 5, windowMs: 300_000 });
-
-      const db = createDb();
+    .mutation(async ({ input, ctx }) => {
+      const ip = ctx.ip ?? "unknown";
+      await checkRateLimit({ key: `otp-reset:email:${input.email}`, limit: 5, windowMs: 300_000, strict: true });
+      await checkRateLimit({ key: `otp-reset:ip:${ip}`, limit: 15, windowMs: 300_000, strict: true });
 
       const identifier = `forget-password:${input.email}`;
       const [record] = await db

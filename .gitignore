@@ -9,6 +9,7 @@ references
 # Build outputs
 dist
 build
+blog
 *.tsbuildinfo
 
 # Environment variables

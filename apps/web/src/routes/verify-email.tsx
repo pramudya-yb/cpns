@@ -5,10 +5,12 @@ import { Button } from "@labas/ui/components/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
 import { Input } from "@labas/ui/components/input";
 import { toast } from "sonner";
+import type { TurnstileInstance } from "@marsidev/react-turnstile";
 import { getErrorMessage } from "@/lib/error-utils";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { routeShell } from "@/lib/route-shell";
+import { TurnstileField, TURNSTILE_SITE_KEY } from "@/components/TurnstileField";
 import { z } from "zod";
 
 const searchSchema = z.object({
@@ -40,6 +42,8 @@ function RouteComponent() {
 
   const sendMutation = useMutation(trpc.verification.sendVerificationOtp.mutationOptions());
   const verifyMutation = useMutation(trpc.verification.verifyEmailOtp.mutationOptions());
+  const [resendTurnstileToken, setResendTurnstileToken] = useState<string | undefined>(undefined);
+  const resendTurnstileRef = useRef<TurnstileInstance>(null);
 
   useEffect(() => {
     if (!searchEmail) {
@@ -66,13 +70,17 @@ function RouteComponent() {
     inputRefs.current[0]?.focus();
   }, []);
 
-  const handleSendOtp = async () => {
+  const handleSendOtp = async (token?: string) => {
     if (!email) return;
     try {
-      await sendMutation.mutateAsync({ email });
+      await sendMutation.mutateAsync({ email, turnstileToken: token });
       toast.success("Kode OTP telah dikirim ke email Anda");
       setCountdown(60);
+      resendTurnstileRef.current?.reset();
+      setResendTurnstileToken(undefined);
     } catch (err: unknown) {
+      resendTurnstileRef.current?.reset();
+      setResendTurnstileToken(undefined);
       toast.error(getErrorMessage(err) || "Gagal mengirim OTP");
     }
   };
@@ -173,16 +181,42 @@ function RouteComponent() {
             {verifyMutation.isPending ? "Memverifikasi..." : "Verifikasi Email"}
           </Button>
 
-          <div className="text-center text-sm text-muted-foreground">
-            Tidak menerima kode?{" "}
-            <Button
-              variant="link"
-              className="p-0 h-auto font-semibold"
-              disabled={sendMutation.isPending || countdown > 0}
-              onClick={handleSendOtp}
-            >
-              {countdown > 0 ? `Kirim ulang (${countdown}s)` : "Kirim Ulang"}
-            </Button>
+          <div className="space-y-3">
+            {countdown === 0 && TURNSTILE_SITE_KEY ? (
+              <div className="space-y-2">
+                <p className="text-center text-xs text-muted-foreground">
+                  Verifikasi keamanan untuk kirim ulang kode
+                </p>
+                <TurnstileField
+                  ref={resendTurnstileRef}
+                  onSuccess={(token) => {
+                    setResendTurnstileToken(token);
+                    handleSendOtp(token);
+                  }}
+                  onExpire={() => setResendTurnstileToken(undefined)}
+                  onError={() => setResendTurnstileToken(undefined)}
+                />
+              </div>
+            ) : null}
+            <p className="text-center text-sm text-muted-foreground">
+              Tidak menerima kode?{" "}
+              {countdown > 0 ? (
+                <span className="font-semibold text-foreground">Kirim ulang ({countdown}s)</span>
+              ) : TURNSTILE_SITE_KEY ? (
+                <span className="font-semibold text-foreground">
+                  {sendMutation.isPending ? "Mengirim..." : "Selesaikan verifikasi di atas"}
+                </span>
+              ) : (
+                <Button
+                  variant="link"
+                  className="p-0 h-auto font-semibold"
+                  disabled={sendMutation.isPending}
+                  onClick={() => handleSendOtp()}
+                >
+                  {sendMutation.isPending ? "Mengirim..." : "Kirim Ulang"}
+                </Button>
+              )}
+            </p>
           </div>
 
           <div className="text-center">

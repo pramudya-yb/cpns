@@ -39,6 +39,8 @@ export interface RateLimitConfig {
   key: string;
   limit: number;
   windowMs: number;
+  /** When true, throw a 503 if Redis is unavailable instead of silently skipping. */
+  strict?: boolean;
 }
 
 export async function checkRateLimit(config: RateLimitConfig): Promise<void> {
@@ -56,7 +58,36 @@ export async function checkRateLimit(config: RateLimitConfig): Promise<void> {
     }
   } catch (err) {
     if (err instanceof TRPCError) throw err;
+    if (config.strict) {
+      logger.error("[RATELIMIT] Redis unavailable, rejecting request (strict mode)", { error: (err as Error).message });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Service temporarily unavailable. Please try again.",
+      });
+    }
     logger.warn("[RATELIMIT] Redis unavailable, rate limit skipped", { error: (err as Error).message });
+  }
+}
+
+/**
+ * Returns true if the request is allowed, false if rate-limited.
+ * Used by non-tRPC contexts (e.g. Hono middleware) where throwing TRPCError is not appropriate.
+ * Fails open (returns true) when Redis is unavailable unless `strict` is set.
+ */
+export async function checkRateLimitAllowed(config: RateLimitConfig): Promise<boolean> {
+  const r = getRedis();
+  const key = `ratelimit:${config.key}`;
+  const now = Date.now();
+  try {
+    const allowed = await r.eval(SCRIPT, 1, key, config.limit.toString(), config.windowMs.toString(), now.toString());
+    return allowed !== 0;
+  } catch (err) {
+    if (config.strict) {
+      logger.error("[RATELIMIT] Redis unavailable (strict mode)", { error: (err as Error).message });
+      return false;
+    }
+    logger.warn("[RATELIMIT] Redis unavailable, rate limit skipped", { error: (err as Error).message });
+    return true;
   }
 }
 

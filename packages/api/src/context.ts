@@ -1,5 +1,6 @@
 import { auth } from "@labas/auth";
 import type { Context as HonoContext } from "hono";
+import { getClientIp } from "./lib/client-ip";
 
 export type CreateContextOptions = {
   context: HonoContext;
@@ -12,6 +13,7 @@ export async function createContext({ context }: CreateContextOptions) {
   return {
     auth: null,
     session,
+    ip: getClientIp(context),
   };
 }
 

@@ -7,11 +7,14 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
+import type { TurnstileInstance } from "@marsidev/react-turnstile";
+import { useRef, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { TurnstileField, TURNSTILE_SITE_KEY } from "@/components/TurnstileField";
 
 import Loader from "./loader";
 
@@ -40,6 +43,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   });
   const { isPending } = authClient.useSession();
   const sendOtpMutation = useMutation(trpc.verification.sendVerificationOtp.mutationOptions());
+  const [turnstileToken, setTurnstileToken] = useState<string | undefined>(undefined);
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const form = useForm({
     defaultValues: {
@@ -59,8 +64,10 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           onSuccess: async () => {
             trackUmamiEvent(AnalyticsEvent.SIGN_UP);
             try {
-              await sendOtpMutation.mutateAsync({ email: value.email });
+              await sendOtpMutation.mutateAsync({ email: value.email, turnstileToken });
             } catch {}
+            turnstileRef.current?.reset();
+            setTurnstileToken(undefined);
             navigate({
               to: "/verify-email",
               search: { email: value.email },
@@ -68,6 +75,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
             toast.success("Akun berhasil dibuat! Cek email Anda untuk kode verifikasi.");
           },
           onError: (error) => {
+            turnstileRef.current?.reset();
+            setTurnstileToken(undefined);
             toast.error(error.error.message || error.error.statusText);
           },
         },
@@ -190,11 +199,22 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
             </form.Field>
           </div>
 
+          <TurnstileField
+            ref={turnstileRef}
+            onSuccess={setTurnstileToken}
+            onExpire={() => setTurnstileToken(undefined)}
+            onError={() => setTurnstileToken(undefined)}
+          />
+
           <form.Subscribe
             selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
           >
             {({ canSubmit, isSubmitting }) => (
-              <Button type="submit" className="w-full rounded-[var(--radius-lg)]" disabled={!canSubmit || isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full rounded-[var(--radius-lg)]"
+                disabled={!canSubmit || isSubmitting || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+              >
                 {isSubmitting ? "Submitting..." : "Sign Up"}
               </Button>
             )}

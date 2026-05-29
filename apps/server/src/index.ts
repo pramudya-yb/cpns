@@ -1,6 +1,7 @@
 import { trpcServer } from "@hono/trpc-server";
 import { createContext } from "@labas/api/context";
 import { appRouter } from "@labas/api/routers/index";
+import { checkRateLimitAllowed } from "@labas/api/lib/rate-limit";
 import { auth } from "@labas/auth";
 import { env } from "@labas/env/server";
 import { withRequestId } from "@labas/api/logger";
@@ -43,6 +44,21 @@ app.use(
     credentials: true,
   }),
 );
+
+// Rate limit sign-up attempts per IP to mitigate mass account creation
+app.use("/api/auth/sign-up/email", async (c, next) => {
+  if (c.req.method !== "POST") return next();
+  const cfIp = c.req.header("cf-connecting-ip");
+  const forwarded = c.req.header("x-forwarded-for");
+  const realIp = c.req.header("x-real-ip");
+  const firstForwardedIp = forwarded ? forwarded.split(",")[0]?.trim() : undefined;
+  const ip = cfIp ?? firstForwardedIp ?? realIp ?? "unknown";
+  const allowed = await checkRateLimitAllowed({ key: `signup:ip:${ip}`, limit: 5, windowMs: 3_600_000 });
+  if (!allowed) {
+    return c.json({ error: "Too many sign-up attempts. Please try again later." }, 429);
+  }
+  return next();
+});
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
