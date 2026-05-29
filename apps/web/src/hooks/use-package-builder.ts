@@ -69,7 +69,7 @@ export function usePackageBuilder() {
   }) => {
     const available = params.allQuestions.filter((q) => q.examTypeId === params.examTypeId);
 
-    let picked = available;
+    let picked: typeof available;
     if (params.sortOrder === "random") {
       picked = [...available].sort(() => Math.random() - 0.5);
     } else {

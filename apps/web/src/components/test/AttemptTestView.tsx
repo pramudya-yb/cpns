@@ -181,7 +181,7 @@ export function AttemptTestView({
       const v = answers[q.id];
       if (v) void onAnswerChange(q.id, sectionResultId, v);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- flush once per section when ids align; `answers` read from committing render
+    /* flush once per section when ids align; `answers` read from committing render */
   }, [sectionResultId, currentSectionIdx, isFinished, currentSection?.questions?.length, onAnswerChange]);
 
   if (!currentSection) {
