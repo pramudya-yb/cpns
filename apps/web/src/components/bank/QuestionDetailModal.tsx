@@ -1,12 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-} from "@labas/ui/components/dialog";
+} from "@pram/ui/components/dialog";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { formatLabel } from "@/lib/format";

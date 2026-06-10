@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Input } from "@labas/ui/components/input";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Input } from "@pram/ui/components/input";
 
 import { MCQ_FORMATS } from "@/lib/question-formats";
 import type { Question } from "@/lib/types";

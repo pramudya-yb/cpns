@@ -13,8 +13,8 @@
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@/components",
-    "utils": "@labas/ui/lib/utils",
-    "ui": "@labas/ui/components",
+    "utils": "@pram/ui/lib/utils",
+    "ui": "@pram/ui/components",
     "lib": "@/lib",
     "hooks": "@/hooks"
   },

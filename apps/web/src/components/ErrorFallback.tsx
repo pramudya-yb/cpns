@@ -1,4 +1,4 @@
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 
 export function ErrorFallback({ error, reset }: { error: Error; reset?: () => void }) {
   return (

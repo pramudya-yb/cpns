@@ -4,10 +4,10 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@labas/ui/components/card";
-import { Button } from "@labas/ui/components/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@pram/ui/components/card";
+import { Button } from "@pram/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import type { GenerationResult } from "@labas/ai";
+import type { GenerationResult } from "@pram/ai";
 
 interface LogEntry {
   step: string;

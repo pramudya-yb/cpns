@@ -114,14 +114,9 @@ export function Sidebar() {
         }`}
       >
         <div className={`mb-8 ${collapsed ? "px-0 text-center" : "px-3"}`}>
-          <img
-            src="/logo.png"
-            alt="Labas"
-            width={64}
-            height={64}
-            className="mt-2 size-16 object-contain select-none"
-            decoding="async"
-          />
+          <span className="mt-2 text-3xl font-black tracking-tight select-none text-[var(--warm-charcoal)]">
+            pram
+          </span>
           {!collapsed && (
             <p className="text-xs text-[var(--warm-charcoal)] uppercase tracking-widest font-semibold mt-1">
               Exam Prep Portal

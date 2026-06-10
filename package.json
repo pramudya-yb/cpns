@@ -1,5 +1,5 @@
 {
-  "name": "labas",
+  "name": "pram",
   "version": "0.1.0",
   "private": true,
   "workspaces": {
@@ -22,31 +22,31 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "test": "turbo test",
-    "check-types": "turbo check-types",
+    "dev": "turbo dev --filter=!.",
+    "build": "turbo build --filter=!.",
+    "test": "turbo test --filter=!.",
+    "check-types": "turbo check-types --filter=!.",
     "compress:og": "bun scripts/compress-og-image.ts",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
-    "db:push": "turbo -F @labas/db db:push",
-    "db:studio": "turbo -F @labas/db db:studio",
-    "db:generate": "turbo -F @labas/db db:generate",
-    "db:migrate": "turbo -F @labas/db db:migrate",
-    "db:seed": "turbo -F @labas/db db:seed",
-    "db:start": "turbo -F @labas/db db:start",
-    "db:watch": "turbo -F @labas/db db:watch",
-    "db:stop": "turbo -F @labas/db db:stop",
-    "db:down": "turbo -F @labas/db db:down"
+    "db:push": "turbo -F @pram/db db:push",
+    "db:studio": "turbo -F @pram/db db:studio",
+    "db:generate": "turbo -F @pram/db db:generate",
+    "db:migrate": "turbo -F @pram/db db:migrate",
+    "db:seed": "turbo -F @pram/db db:seed",
+    "db:start": "turbo -F @pram/db db:start",
+    "db:watch": "turbo -F @pram/db db:watch",
+    "db:stop": "turbo -F @pram/db db:stop",
+    "db:down": "turbo -F @pram/db db:down"
   },
   "dependencies": {
-    "@labas/env": "workspace:*",
+    "@pram/env": "workspace:*",
     "dotenv": "catalog:",
     "react-joyride": "^3.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@labas/config": "workspace:*",
+    "@pram/config": "workspace:*",
     "@types/bun": "catalog:",
     "turbo": "^2.8.12",
     "typescript": "catalog:"

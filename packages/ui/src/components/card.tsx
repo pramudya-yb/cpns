@@ -1,4 +1,4 @@
-import { cn } from "@labas/ui/lib/utils";
+import { cn } from "@pram/ui/lib/utils";
 import * as React from "react";
 
 function Card({

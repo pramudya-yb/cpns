@@ -1,4 +1,4 @@
-# Nixpacks config for the Labas API server (Hono + tRPC).
+﻿# Nixpacks config for the Pram API server (Hono + tRPC).
 # Point Coolify to this file: NIXPACKS_CONFIG_FILE=deploy/server.nixpacks.toml
 
 [phases.setup]

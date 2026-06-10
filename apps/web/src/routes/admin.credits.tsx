@@ -2,13 +2,12 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
-import { Input } from "@labas/ui/components/input";
-import { Button } from "@labas/ui/components/button";
+import { Input } from "@pram/ui/components/input";
+import { Button } from "@pram/ui/components/button";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/error-utils";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { DataTable } from "@/components/admin/DataTable";
-import type { ColumnDef } from "@/components/admin/DataTable";
 
 export const Route = createFileRoute("/admin/credits")({
   component: AdminCredits,

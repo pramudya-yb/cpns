@@ -1,4 +1,4 @@
-# Design System Inspired by Clay
+﻿# Design System Inspired by Clay
 
 ## 1. Visual Theme & Atmosphere
 
@@ -327,7 +327,7 @@ All `packages/ui` primitives use semantic tokens; zero app-specific CSS vars in 
 - `--primary` → `--matcha-600` (green/action)
 - `--secondary` → `--clay-black` (black/neutral)
 - Theme lives in `packages/ui/src/styles/globals.css`
-- App (`apps/web`) imports only `@import "@labas/ui/globals.css"` — no `index.css` overrides
+- App (`apps/web`) imports only `@import "@pram/ui/globals.css"` — no `index.css` overrides
 
 ### 4.4 Accessibility Decisions
 

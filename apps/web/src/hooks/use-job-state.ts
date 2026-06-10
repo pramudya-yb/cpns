@@ -52,13 +52,13 @@ function writeClearedJobIds(ids: string[]) {
 
 function broadcastJobs(ids: string[]) {
   window.dispatchEvent(
-    new CustomEvent("labas:jobs-change", { detail: { ids } }),
+    new CustomEvent("pram:jobs-change", { detail: { ids } }),
   );
 }
 
 function broadcastResults(results: CompletedResult[]) {
   window.dispatchEvent(
-    new CustomEvent("labas:results-change", { detail: { results } }),
+    new CustomEvent("pram:results-change", { detail: { results } }),
   );
 }
 
@@ -222,8 +222,8 @@ export function useJobState() {
       const detail = (e as CustomEvent).detail as { ids: string[] };
       dispatch({ type: "syncIds", ids: detail.ids });
     };
-    window.addEventListener("labas:jobs-change", handler);
-    return () => window.removeEventListener("labas:jobs-change", handler);
+    window.addEventListener("pram:jobs-change", handler);
+    return () => window.removeEventListener("pram:jobs-change", handler);
   }, []);
 
   /* Sync completed results across hook instances (GeneratePage + GlobalProgress) */
@@ -233,8 +233,8 @@ export function useJobState() {
       skipPersistRef.current = true;
       dispatch({ type: "syncResults", results: detail.results });
     };
-    window.addEventListener("labas:results-change", handler);
-    return () => window.removeEventListener("labas:results-change", handler);
+    window.addEventListener("pram:results-change", handler);
+    return () => window.removeEventListener("pram:results-change", handler);
   }, []);
 
   const addJob = useCallback((id: string) => dispatch({ type: "addJob", id }), []);

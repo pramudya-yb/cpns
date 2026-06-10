@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouterState, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "@labas/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useGenerationJobs, type ActiveJob } from "@/hooks/use-generation-jobs";
 import { isTerminal } from "@/hooks/use-job-shared";

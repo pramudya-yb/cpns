@@ -5,9 +5,9 @@ import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent } from "@labas/ui/components/card";
-import { Input } from "@labas/ui/components/input";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
+import { Input } from "@pram/ui/components/input";
 import {
   Select,
   SelectContent,
@@ -15,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@labas/ui/components/select";
+} from "@pram/ui/components/select";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { EXAM_TYPES } from "@/lib/exam-constants";
 

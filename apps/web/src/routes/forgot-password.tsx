@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
-import { Input } from "@labas/ui/components/input";
-import { Label } from "@labas/ui/components/label";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@pram/ui/components/card";
+import { Input } from "@pram/ui/components/input";
+import { Label } from "@pram/ui/components/label";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/error-utils";
 import { trpc } from "@/utils/trpc";
@@ -242,7 +242,7 @@ function RouteComponent() {
   if (!email) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-muted/30">
-        <img src="/logo.png" alt="Labas Logo" className="h-20 w-auto mb-8 absolute top-8" />
+        <img src="/logo.png" alt="Pram Logo" className="h-20 w-auto mb-8 absolute top-8" />
         <StepEmail onNext={setEmail} />
       </div>
     );
@@ -250,7 +250,7 @@ function RouteComponent() {
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-muted/30">
-      <img src="/logo.png" alt="Labas Logo" className="h-20 w-auto mb-8 absolute top-8" />
+      <img src="/logo.png" alt="Pram Logo" className="h-20 w-auto mb-8 absolute top-8" />
       <StepReset email={email} />
     </div>
   );

@@ -1,4 +1,4 @@
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,8 +7,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@labas/ui/components/dropdown-menu";
-import { Skeleton } from "@labas/ui/components/skeleton";
+} from "@pram/ui/components/dropdown-menu";
+import { Skeleton } from "@pram/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";

@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@labas/ui/components/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@pram/ui/components/dialog";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { CommunityChannelList } from "@/components/CommunityChannelList";
 
@@ -17,10 +17,10 @@ export function CommunityModal({
             <MaterialIcon name="forum" className="text-4xl text-[var(--matcha-800)]" />
           </div>
           <DialogTitle className="text-center text-2xl font-headline font-extrabold text-[var(--clay-black)]">
-            Gabung Komunitas Labas
+            Gabung Komunitas Pram
           </DialogTitle>
           <DialogDescription className="text-center text-base text-[var(--warm-charcoal)] pt-2 leading-relaxed">
-            Belajar bahasa, lapor bug, atau ikut ngembangin Labas — pilih channel yang paling pas.
+            Belajar bahasa, lapor bug, atau ikut ngembangin Pram — pilih channel yang paling pas.
           </DialogDescription>
         </DialogHeader>
         <div className="mt-6">

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { encryptText, decryptText } from "@/lib/crypto";
 import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
 
-const STORAGE_KEY = "labas_api_keys_v2";
+const STORAGE_KEY = "pram_api_keys_v2";
 
 export interface ApiKeyConfig {
   id: string;
@@ -102,7 +102,7 @@ export function useApiKeys() {
 
 // Backward-compatible hook for places that only need the first (default) key
 export function useApiKey() {
-  const { configs, isLoading, addConfig, updateConfig, removeConfig } =
+  const { configs, isLoading, addConfig, removeConfig } =
     useApiKeys();
 
   const storedKey = configs[0] ?? null;

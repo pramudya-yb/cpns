@@ -1,11 +1,11 @@
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@labas/ui/components/dialog";
+} from "@pram/ui/components/dialog";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 interface FinishDialogProps {

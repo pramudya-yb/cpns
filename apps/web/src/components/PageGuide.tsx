@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Card } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 interface GuideItem {

@@ -1,6 +1,6 @@
-const DB_NAME = "labas-crypto";
+const DB_NAME = "pram-crypto";
 const STORE_NAME = "keys";
-const KEY_NAME = "labas-master-key";
+const KEY_NAME = "pram-master-key";
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {

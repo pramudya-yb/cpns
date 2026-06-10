@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@labas/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@pram/ui/components/card";
 import { formatTime } from "@/lib/time";
 import { formatLabel } from "@/lib/format";
 

@@ -1,4 +1,4 @@
-import { auth } from "@labas/auth";
+import { auth } from "@pram/auth";
 import type { Context as HonoContext } from "hono";
 import { getClientIp } from "./lib/client-ip";
 

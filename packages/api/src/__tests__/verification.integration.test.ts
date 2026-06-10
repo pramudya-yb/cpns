@@ -6,7 +6,7 @@ import { getTestPGlite, closeTestPGlite } from "./test-setup";
 
 // ── Mocks (must be declared before dynamic imports) ──────────────────────────
 
-mock.module("@labas/env/server", () => ({
+mock.module("@pram/env/server", () => ({
   env: {
     DATABASE_URL: "postgres://localhost:5432/test",
     BETTER_AUTH_SECRET: "a".repeat(32),
@@ -57,7 +57,7 @@ describe("verification router", () => {
     const pg = await getTestPGlite();
     db = drizzle(pg, { schema });
 
-    mock.module("@labas/db", () => ({
+    mock.module("@pram/db", () => ({
       __esModule: true,
       ...schema,
       db,

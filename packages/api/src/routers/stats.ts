@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and, sql, gte } from "drizzle-orm";
 import { router, protectedProcedure } from "../index";
-import { db } from "@labas/db";
+import { db } from "@pram/db";
 import {
   testAttempt,
   sectionResult,
@@ -10,7 +10,7 @@ import {
   question,
   examType,
   sectionType,
-} from "@labas/db";
+} from "@pram/db";
 
 export const statsRouter = router({
   overview: protectedProcedure.query(async ({ ctx }) => {

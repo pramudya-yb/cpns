@@ -5,7 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { useJobState } from "./use-job-state";
 import { usePollingTransport } from "./use-polling-transport";
 import { MAX_PARALLEL, ACTIVE_STATUSES, isTerminal } from "./use-job-shared";
-import type { GenerationResult } from "@labas/ai";
+import type { GenerationResult } from "@pram/ai";
 
 export type { ActiveJob, CompletedResult } from "./use-job-shared";
 

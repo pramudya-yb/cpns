@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Card } from "@labas/ui/components/card";
-import { Button } from "@labas/ui/components/button";
+import { Card } from "@pram/ui/components/card";
+import { Button } from "@pram/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { QuestionCard } from "./QuestionCard";
 import { CalloutCard } from "./CalloutCard";
@@ -63,13 +63,13 @@ export function SoalBrowser({
 
   // ── Private callout dismiss ──
   const calloutDismissed = typeof window !== "undefined"
-    ? localStorage.getItem("labas-bank-private-callout-dismissed") === "true"
+    ? localStorage.getItem("pram-bank-private-callout-dismissed") === "true"
     : false;
 
   const privateCount = totalPrivateCount ?? 0;
 
   const handleDismissCallout = () => {
-    localStorage.setItem("labas-bank-private-callout-dismissed", "true");
+    localStorage.setItem("pram-bank-private-callout-dismissed", "true");
     setBulkMode((prev) => prev);
   };
 

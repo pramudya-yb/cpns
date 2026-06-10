@@ -16,7 +16,7 @@ function RouteComponent() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-muted/30">
       <div className="w-full max-w-md flex flex-col items-center">
-        <img src="/logo.png" alt="Labas Logo" className="h-20 w-auto mb-8" />
+        <span className="text-4xl font-black tracking-tight select-none mb-8">pram</span>
         {showSignIn ? (
           <SignInForm onSwitchToSignUp={() => setShowSignIn(false)} />
         ) : (

@@ -1,4 +1,4 @@
-import { Toaster } from "@labas/ui/components/sonner";
+import { Toaster } from "@pram/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
@@ -56,7 +56,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         { name: "robots", content: "index, follow" },
       ],
       links: [
-        { rel: "icon", href: "/labas_icon.png" },
+        { rel: "icon", href: "/pram_icon.png" },
         { rel: "canonical", href: `${SITE_URL}/` },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" as const },
@@ -71,7 +71,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebSite",
-            name: "Labas",
+            name: "Pram",
             url: SITE_URL,
             description: DEFAULT_SITE_DESCRIPTION,
             potentialAction: {
@@ -98,7 +98,7 @@ function RootComponent() {
         defaultTheme="light"
         enableSystem
         disableTransitionOnChange
-        storageKey="labas-theme"
+        storageKey="pram-theme"
       >
         {shell === "fullscreen" ? (
           <div className="h-screen bg-background text-on-surface flex flex-col overflow-y-auto relative">

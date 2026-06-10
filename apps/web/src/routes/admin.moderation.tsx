@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/error-utils";
 import { DataTable } from "@/components/admin/DataTable";

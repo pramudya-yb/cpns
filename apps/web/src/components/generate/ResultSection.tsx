@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent, CardHeader } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent, CardHeader } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import type { GenerationResult } from "@labas/ai";
+import type { GenerationResult } from "@pram/ai";
 
 interface ResultSectionProps {
   result: GenerationResult;

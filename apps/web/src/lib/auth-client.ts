@@ -1,4 +1,4 @@
-import { env } from "@labas/env/web";
+import { env } from "@pram/env/web";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({

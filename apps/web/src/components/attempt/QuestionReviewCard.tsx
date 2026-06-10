@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
-import { Button } from "@labas/ui/components/button";
-import { Input } from "@labas/ui/components/input";
+import { Button } from "@pram/ui/components/button";
+import { Input } from "@pram/ui/components/input";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatTime } from "@/lib/time";
 import type { Question } from "@/lib/types";

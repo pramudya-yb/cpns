@@ -1,8 +1,8 @@
 /** Shared types and constants for job management hooks. */
 
-export const STORAGE_KEY = "labas_active_jobs";
-export const RESULTS_KEY = "labas_completed_results";
-export const CLEARED_JOBS_KEY = "labas_cleared_jobs";
+export const STORAGE_KEY = "pram_active_jobs";
+export const RESULTS_KEY = "pram_completed_results";
+export const CLEARED_JOBS_KEY = "pram_cleared_jobs";
 export const MAX_PARALLEL = 3;
 
 export interface ActiveJob {
@@ -21,7 +21,7 @@ export interface ActiveJob {
 
 export interface CompletedResult {
   jobId: string;
-  result: import("@labas/ai").GenerationResult;
+  result: import("@pram/ai").GenerationResult;
   generatedPackageId: string | null;
   examType?: string;
   section?: string;

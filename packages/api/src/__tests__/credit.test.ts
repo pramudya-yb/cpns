@@ -24,7 +24,7 @@ const MOCK_ENV = {
   FREE_CREDITS_MAX_POOL: 1000000,
 };
 
-mock.module("@labas/env/server", () => ({
+mock.module("@pram/env/server", () => ({
   env: MOCK_ENV,
 }));
 
@@ -44,7 +44,7 @@ describe("Credit Utility", () => {
     const pg = await getTestPGlite();
     db = drizzle(pg, { schema });
 
-    mock.module("@labas/db", () => ({
+    mock.module("@pram/db", () => ({
       db,
       ...schema,
     }));

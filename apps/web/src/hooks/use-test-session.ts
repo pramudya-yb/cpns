@@ -5,15 +5,15 @@ import { trpc } from "@/utils/trpc";
 import { getErrorMessage } from "@/lib/error-utils";
 
 function getTimerKey(attemptId: string | null) {
-  return attemptId ? `labas_attempt_timer_${attemptId}` : null;
+  return attemptId ? `pram_attempt_timer_${attemptId}` : null;
 }
 
 function getMarkedKey(attemptId: string | null) {
-  return attemptId ? `labas_attempt_marked_${attemptId}` : null;
+  return attemptId ? `pram_attempt_marked_${attemptId}` : null;
 }
 
 function getSectionKey(attemptId: string | null) {
-  return attemptId ? `labas_attempt_section_${attemptId}` : null;
+  return attemptId ? `pram_attempt_section_${attemptId}` : null;
 }
 
 function loadElapsedTime(attemptId: string | null): number {

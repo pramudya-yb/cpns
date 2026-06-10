@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { env } from "@labas/env/server";
-import { logger } from "@labas/api/logger";
+import { env } from "@pram/env/server";
+import { logger } from "@pram/api/logger";
 
 /**
  * Validates a Cloudflare Turnstile token server-side.

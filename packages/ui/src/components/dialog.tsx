@@ -1,8 +1,8 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
-import { cn } from "@labas/ui/lib/utils"
-import { Button } from "@labas/ui/components/button"
+import { cn } from "@pram/ui/lib/utils"
+import { Button } from "@pram/ui/components/button"
 import { XIcon } from "lucide-react"
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {

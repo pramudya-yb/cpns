@@ -1,8 +1,8 @@
 import { eq, sql, and, desc, sum, gte } from "drizzle-orm";
-import { db } from "@labas/db";
-import { userCredit, creditTransaction, user, platformConfig } from "@labas/db";
+import { db } from "@pram/db";
+import { userCredit, creditTransaction, user, platformConfig } from "@pram/db";
 import { TRPCError } from "@trpc/server";
-import { env } from "@labas/env/server";
+import { env } from "@pram/env/server";
 
 const COOLDOWN_DAYS = 7;
 

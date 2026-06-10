@@ -3,8 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatTime } from "@/lib/time";
 import type { Question } from "@/lib/types";
@@ -21,13 +21,6 @@ interface AnswerItem {
   isCorrect?: boolean | null;
   partialScore?: number | null;
   timeSpentSec?: number;
-}
-
-interface QuestionAnswer {
-  q: Question;
-  ans: AnswerItem | null;
-  secIdx: number;
-  qIdx: number;
 }
 
 export const Route = createFileRoute("/attempt/$id")({

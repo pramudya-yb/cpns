@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { eq, and, avg } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
-import { db } from "@labas/db";
-import { questionRating, question, packageRating, testPackage } from "@labas/db";
+import { db } from "@pram/db";
+import { questionRating, question, packageRating, testPackage } from "@pram/db";
 import { checkRateLimit } from "../lib/rate-limit";
 
 export const ratingRouter = router({

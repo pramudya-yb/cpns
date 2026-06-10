@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
-import { Input } from "@labas/ui/components/input";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@pram/ui/components/card";
+import { Input } from "@pram/ui/components/input";
 import { toast } from "sonner";
 import type { TurnstileInstance } from "@marsidev/react-turnstile";
 import { getErrorMessage } from "@/lib/error-utils";

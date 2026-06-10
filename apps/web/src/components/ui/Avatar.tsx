@@ -1,4 +1,4 @@
-import { cn } from "@labas/ui/lib/utils";
+import { cn } from "@pram/ui/lib/utils";
 
 const sizeClasses = {
   xs: { container: "h-6 w-6", text: "text-xs" },

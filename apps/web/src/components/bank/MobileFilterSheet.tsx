@@ -4,7 +4,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from "@labas/ui/components/sheet";
+} from "@pram/ui/components/sheet";
 import {
   Select,
   SelectContent,
@@ -12,8 +12,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@labas/ui/components/select";
-import { Button } from "@labas/ui/components/button";
+} from "@pram/ui/components/select";
+import { Button } from "@pram/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { SECTIONS, FORMATS, DIFFICULTIES } from "@/lib/exam-constants";
 import { formatLabel } from "@/lib/format";

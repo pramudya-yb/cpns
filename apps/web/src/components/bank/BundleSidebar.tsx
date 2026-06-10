@@ -1,5 +1,5 @@
-import { Button } from "@labas/ui/components/button";
-import { Input } from "@labas/ui/components/input";
+import { Button } from "@pram/ui/components/button";
+import { Input } from "@pram/ui/components/input";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatLabel } from "@/lib/format";
 

@@ -1,9 +1,9 @@
 import { Queue, Worker, type Job } from "bullmq";
 import IORedis from "ioredis";
-import { env } from "@labas/env/server";
+import { env } from "@pram/env/server";
 
 async function log(level: "debug" | "warn", message: string, meta?: Record<string, unknown>) {
-  const mod = await import("@labas/api/logger");
+  const mod = await import("@pram/api/logger");
   (mod.logger as any)[level](message, meta);
 }
 import {
@@ -15,15 +15,15 @@ import {
   type AgenticProgress,
   type GenerationInput,
   type GenerationResult,
-} from "@labas/ai";
-import { db } from "@labas/db";
+} from "@pram/ai";
+import { db } from "@pram/db";
 import {
   generationJob,
   question,
   testPackage,
   packageSection,
   sectionQuestion,
-} from "@labas/db";
+} from "@pram/db";
 import { and, eq, notInArray } from "drizzle-orm";
 import { encryptApiKey, decryptApiKey } from "./lib/encryption";
 import {
@@ -489,7 +489,7 @@ async function completeJobWithResult(params: {
       .where(eq(generationJob.id, params.jobId))
       .limit(1);
     if (jobRow) {
-      const { deductCredit } = await import("@labas/api/lib/credit");
+      const { deductCredit } = await import("@pram/api/lib/credit");
       await deductCredit(jobRow.userId, params.totalTokens).catch(() => {});
     }
   }

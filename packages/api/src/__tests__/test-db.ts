@@ -1,6 +1,6 @@
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
-import * as schema from "@labas/db";
+import * as schema from "@pram/db";
 
 let _client: PGlite | null = null;
 

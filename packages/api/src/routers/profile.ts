@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
-import { db } from "@labas/db";
-import { testPackage, question, examType, user } from "@labas/db";
+import { db } from "@pram/db";
+import { testPackage, question, examType, user } from "@pram/db";
 import { throwBadRequest } from "../lib/errors";
 
 export const profileRouter = router({

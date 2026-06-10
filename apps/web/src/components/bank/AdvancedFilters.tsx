@@ -5,7 +5,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@labas/ui/components/select";
+} from "@pram/ui/components/select";
 import { SECTIONS, FORMATS, DIFFICULTIES } from "@/lib/exam-constants";
 import { formatLabel } from "@/lib/format";
 

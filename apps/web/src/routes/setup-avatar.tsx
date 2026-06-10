@@ -7,10 +7,10 @@ import {
 } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { cn } from "@labas/ui/lib/utils";
+import { cn } from "@pram/ui/lib/utils";
 import {
   buildDiceBearLoreleiUrl,
   randomSeed,

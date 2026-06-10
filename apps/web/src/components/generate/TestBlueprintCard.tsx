@@ -1,5 +1,5 @@
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { EXAM_TYPES, SECTIONS } from "@/lib/generate-constants";
 

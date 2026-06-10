@@ -6,21 +6,13 @@ import { examType, sectionType } from "./schema";
 const db = drizzle(loadDatabaseUrl());
 
 const examTypes = [
-  { id: "IELTS", name: "IELTS Academic", language: "English", description: "International English Language Testing System" },
-  { id: "TOEFL", name: "TOEFL iBT", language: "English", description: "Test of English as a Foreign Language" },
-  { id: "JLPT", name: "JLPT", language: "Japanese", description: "Japanese-Language Proficiency Test" },
-  { id: "HSK", name: "HSK", language: "Chinese", description: "Hanyu Shuiping Kaoshi" },
-  { id: "GOETHE", name: "Goethe-Zertifikat", language: "German", description: "Goethe-Zertifikat German proficiency test" },
-  { id: "TOPIK", name: "TOPIK", language: "Korean", description: "Test of Proficiency in Korean" },
-  { id: "TOAFL", name: "TOAFL", language: "Arabic", description: "Test of Arabic as a Foreign Language" },
-  { id: "DELE", name: "DELE", language: "Spanish", description: "Diplomas de Español como Lengua Extranjera" },
+  { id: "CPNS", name: "Ujian CPNS", language: "Bahasa Indonesia", description: "Seleksi Calon Pegawai Negeri Sipil" },
 ];
 
 const sectionTypes = [
-  { id: "READING", name: "Reading" },
-  { id: "WRITING", name: "Writing" },
-  { id: "LISTENING", name: "Listening" },
-  { id: "SPEAKING", name: "Speaking" },
+  { id: "TWK", name: "Tes Wawasan Kebangsaan" },
+  { id: "TIU", name: "Tes Intelegensia Umum" },
+  { id: "TKP", name: "Tes Karakteristik Pribadi" },
 ];
 
 async function seed() {

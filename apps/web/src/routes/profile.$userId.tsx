@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { trpc } from "@/utils/trpc";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { Avatar } from "@/components/ui/Avatar";
 

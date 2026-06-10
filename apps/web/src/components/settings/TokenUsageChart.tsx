@@ -11,12 +11,12 @@ import {
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { trpc } from "@/utils/trpc";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@labas/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@pram/ui/components/card";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
-} from "@labas/ui/components/tabs";
+} from "@pram/ui/components/tabs";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 type Period = "daily" | "weekly" | "monthly";

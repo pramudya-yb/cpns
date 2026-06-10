@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { eq, and, sql } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
-import { db } from "@labas/db";
-import { questionFeedback } from "@labas/db";
+import { db } from "@pram/db";
+import { questionFeedback } from "@pram/db";
 import { checkRateLimit } from "../lib/rate-limit";
 
 export const feedbackRouter = router({

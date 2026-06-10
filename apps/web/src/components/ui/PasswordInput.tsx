@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Input } from "@labas/ui/components/input";
-import { Button } from "@labas/ui/components/button";
+import { Input } from "@pram/ui/components/input";
+import { Button } from "@pram/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 type PasswordInputProps = {

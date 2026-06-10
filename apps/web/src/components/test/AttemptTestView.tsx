@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { formatTime } from "@/lib/time";
 import { trpc } from "@/utils/trpc";
 import { QuestionInput } from "./QuestionInput";
 import { AccentKeyboard } from "./AccentKeyboard";

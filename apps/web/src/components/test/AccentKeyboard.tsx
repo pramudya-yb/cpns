@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useMemo } from "react";
 
 const ACCENT_CHARS: Record<string, string[]> = {
   DELE:  ["á", "é", "í", "ó", "ú", "ñ", "¿", "¡"],

@@ -23,7 +23,7 @@ import type { Step } from "react-joyride";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import z from "zod";
 
-const FILTER_ADVANCED_KEY = "labas-bank-filter-advanced";
+const FILTER_ADVANCED_KEY = "pram-bank-filter-advanced";
 
 export const Route = createFileRoute("/bank")({
   validateSearch: z.object({
@@ -588,7 +588,7 @@ export function BankComponent() {
 }
 
 // ── Bank page tour ──
-const BANK_TOUR_KEY = "labas-page-tour-bank";
+const BANK_TOUR_KEY = "pram-page-tour-bank";
 const bankPageSteps: Step[] = [
   {
     target: "[data-tour='bank-filters']",

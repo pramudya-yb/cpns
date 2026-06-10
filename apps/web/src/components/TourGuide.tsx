@@ -7,8 +7,7 @@ const PageTourImpl = lazy(() => import("./TourGuideImpl").then((m) => ({ default
 
 export type { Step };
 
-const LS_GLOBAL = "labas-tour-completed";
-const TRIGGER_GLOBAL = "labas-tour-trigger";
+const TRIGGER_GLOBAL = "pram-tour-trigger";
 
 export function TourGuide() {
   return (

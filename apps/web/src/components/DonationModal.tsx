@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@labas/ui/components/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@pram/ui/components/dialog";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 export function DonationModal({
@@ -18,12 +18,12 @@ export function DonationModal({
             <MaterialIcon name="favorite" className="text-4xl text-[var(--pomegranate-400)]" />
           </div>
           <DialogTitle className="text-center text-2xl font-headline font-extrabold text-[var(--clay-black)]">
-            Dukung Labas!
+            Dukung Pram!
           </DialogTitle>
           <DialogDescription className="text-center text-base text-[var(--warm-charcoal)] pt-2 leading-relaxed">
             Selamat, kamu baru saja menyelesaikan {triggerAction === "exam" ? "latihan soal" : "generate soal AI"}! 🎉
             <br/><br/>
-            Jika Labas membantumu, dukung kami untuk menutupi biaya server & mengembangkan fitur baru dengan mentraktir kopi. ☕
+            Jika Pram membantumu, dukung kami untuk menutupi biaya server & mengembangkan fitur baru dengan mentraktir kopi. ☕
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 mt-6">

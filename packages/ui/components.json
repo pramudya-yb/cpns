@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@labas/ui/components",
-    "utils": "@labas/ui/lib/utils",
-    "hooks": "@labas/ui/hooks",
-    "lib": "@labas/ui/lib",
-    "ui": "@labas/ui/components"
+    "components": "@pram/ui/components",
+    "utils": "@pram/ui/lib/utils",
+    "hooks": "@pram/ui/hooks",
+    "lib": "@pram/ui/lib",
+    "ui": "@pram/ui/components"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

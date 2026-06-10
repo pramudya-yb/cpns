@@ -21,7 +21,7 @@ const MOCK_ENV = {
   DEFAULT_SIGNUP_CREDIT_TOKENS: "50000",
 };
 
-mock.module("@labas/env/server", () => ({
+mock.module("@pram/env/server", () => ({
   env: MOCK_ENV,
 }));
 
@@ -40,7 +40,7 @@ describe("Admin Integration", () => {
     const pg = await getTestPGlite();
     db = drizzle(pg, { schema });
 
-    mock.module("@labas/db", () => ({
+    mock.module("@pram/db", () => ({
       db,
       ...schema,
     }));

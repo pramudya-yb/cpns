@@ -11,9 +11,9 @@
     "rootDirs": ["."],
     "paths": {
       "@/*": ["./src/*"],
-      "@labas/ui/*": ["../../packages/ui/src/*"],
-      "@labas/ai": ["../../packages/ai/src/index.ts"],
-      "@labas/ai/*": ["../../packages/ai/src/*.ts"]
+      "@pram/ui/*": ["../../packages/ui/src/*"],
+      "@pram/ai": ["../../packages/ai/src/index.ts"],
+      "@pram/ai/*": ["../../packages/ai/src/*.ts"]
     }
   }
 }

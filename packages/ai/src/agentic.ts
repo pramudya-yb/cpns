@@ -183,7 +183,7 @@ Rules:
 - Each question must be directly answerable from the passage
 - Use "passageText" field with the relevant excerpt from the passage (or full passage if needed)
 - Questions should test real comprehension, not surface recall
-- For multiple choice: always provide 4 options (A, B, C, D) with one clearly correct answer
+- For multiple choice: always provide 5 options (A, B, C, D, E) with one clearly correct answer
 - Options must be plausible distractors
 ${OPTION_QUALITY_RULES}
 ${buildContentLanguageRules(input.examType)}

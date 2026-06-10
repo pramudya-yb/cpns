@@ -1,7 +1,7 @@
 import IORedis from "ioredis";
-import { env } from "@labas/env/server";
+import { env } from "@pram/env/server";
 import { TRPCError } from "@trpc/server";
-import { logger } from "@labas/api/logger";
+import { logger } from "@pram/api/logger";
 
 let redis: IORedis | null = null;
 

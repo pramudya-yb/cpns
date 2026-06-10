@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
-const LS_KEY = "labas-getting-started-dismissed";
+const LS_KEY = "pram-getting-started-dismissed";
 
 const steps = [
   {

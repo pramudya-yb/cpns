@@ -1,6 +1,5 @@
 import { useState, useEffect, type CSSProperties } from "react";
 import { Joyride, type Step, type EventData } from "react-joyride";
-import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 const joyrideOptions = {
   primaryColor: "var(--matcha-600)",
@@ -24,11 +23,11 @@ export type { Step, EventData };
 
 // ── Global site tour ──
 
-const LS_GLOBAL = "labas-tour-completed";
-const TRIGGER_GLOBAL = "labas-tour-trigger";
+const LS_GLOBAL = "pram-tour-completed";
+const TRIGGER_GLOBAL = "pram-tour-trigger";
 
 const globalSteps: Step[] = [
-  { target: "body", placement: "center", title: "Selamat Datang di Labas!", content: "Platform latihan ujian bahasa berbasis AI. Yuk, kita lihat fitur-fitur utamanya!", hideOverlay: true },
+  { target: "body", placement: "center", title: "Selamat Datang di Pram!", content: "Platform latihan ujian bahasa berbasis AI. Yuk, kita lihat fitur-fitur utamanya!", hideOverlay: true },
   { target: "[data-tour='dashboard-stats']", title: "Ringkasan Aktivitas", content: "Pantau jumlah latihan, waktu belajar, soal terjawab, dan akurasi kamu di sini.", spotlightPadding: 8 },
   { target: "[data-tour='nav-generate']", title: "AI Lab — Generate Soal", content: "Buat soal latihan sendiri pakai AI. Pilih jenis ujian, section, format, dan topik.", spotlightPadding: 4 },
   { target: "[data-tour='nav-bank']", title: "Bank Soal — Buat Paket", content: "Atur soal-soal kamu jadi paket latihan dari bank soal.", spotlightPadding: 4 },

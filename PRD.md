@@ -1,107 +1,48 @@
-# PRD: Labas — AI-Powered Multi-Language Test Practice Platform
+﻿# PRD: Pram — AI-Powered CPNS Test Practice Platform
 
 ## Problem Statement
 
-Pelajar Indonesia yang mempersiapkan ujian bahasa (IELTS, TOEFL, JLPT, HSK, Goethe) kesulitan menemukan soal latihan reading comprehension yang:
-- **Bervariasi** dan mencakup format soal spesifik tiap ujian (synonym, grammar-in-context, cloze, matching headings, author's view, dll.)
+Calon Pegawai Negeri Sipil (CPNS) di Indonesia kesulitan menemukan soal latihan yang:
+- **Bervariasi** dan mencakup format soal spesifik (TWK, TIU, TKP)
 - **Terjangkau** — platform existing biasanya berbayar dan tidak fleksibel
 - **Relevan** dengan kelemahan personal — tidak ada analisis per-section yang memberi rekomendasi perbaikan
 - **Terbuka** — tidak ada platform open-source "bring your own key" untuk generasi soal AI
 
 ## Solution
 
-**Labas** adalah platform open-source yang menyediakan:
-1. **AI Question Generator** — generate soal reading comprehension pakai OpenAI-compatible API (BYOK). Dua mode: quick (single prompt) dan agentic (multi-step validation)
+**Pram** adalah platform open-source yang menyediakan:
+1. **AI Question Generator** — generate soal CPNS pakai OpenAI-compatible API (BYOK). Dua mode: quick (single prompt) dan agentic (multi-step validation)
 2. **Question Bank** — kumpulan soal publik/privat yang bisa di-browse, di-rating, dan digunakan ulang
-3. **Package Builder** — susun paket soal dari kombinasi soal existing + AI-generated, dengan visibility publik/privat
-4. **Package Combiner** — gabung section dari berbagai paket tanpa perlu generate ulang
-5. **Exam Interface** — antarmuka ujian side-by-side (teks + soal), timer, auto-grade
-6. **Deep Analytics** — evaluasi per-section, identifikasi kelemahan, rekomendasi paket soal untuk perbaikan
+3. **Package Builder** — susun paket soal dari kombinasi soal existing + AI-generated
+4. **Exam Interface** — antarmuka ujian simulasi CAT (Computer Assisted Test)
+5. **Deep Analytics** — evaluasi per-section (TWK, TIU, TKP), identifikasi kelemahan, rekomendasi paket soal
 
-Target pengguna: pelajar Indonesia yang mempersiapkan IELTS, TOEFL, JLPT, HSK, dan ujian bahasa Jerman.
+Target pengguna: Calon Pegawai Negeri Sipil (CPNS) Indonesia.
 
 ## User Stories
 
 ### AI Generation
-1. Sebagai pelajar, saya ingin generate soal reading comprehension dengan AI menggunakan API key saya sendiri, agar saya bisa latihan tanpa batasan platform
-2. Sebagai pelajar, saya ingin memilih jenis ujian (IELTS/TOEFL/JLPT/HSK/German), section (Reading/Writing), dan tingkat kesulitan sebelum generate, agar soal sesuai kebutuhan saya
-3. Sebagai pelajar, saya ingin memilih format soal (multiple choice, true/false, matching, fill-in-blank, synonym, dll.) yang akan digenerate, agar latihan saya spesifik
-4. Sebagai pelajar, saya ingin memilih topik bacaan (Science, Business, Arts, dll.) untuk soal yang digenerate, agar konteks relevan dengan minat saya
-5. Sebagai pelajar, saya ingin melihat preview hasil generate sebelum menyimpan, agar saya bisa mengedit atau mere-generate soal yang kurang baik
-6. Sebagai power user, saya ingin menggunakan mode "agentic" yang melakukan validasi multi-step (passage → validate → questions → self-answer → score), agar kualitas soal lebih terjamin
-7. Sebagai pelajar casual, saya ingin menggunakan mode "quick" yang cepat dan hemat token, agar saya bisa langsung latihan
+1. Sebagai peserta, saya ingin generate soal CPNS dengan AI menggunakan API key saya sendiri
+2. Sebagai peserta, saya ingin memilih section (TWK, TIU, TKP) dan tingkat kesulitan sebelum generate
+3. Sebagai peserta, saya ingin memilih topik spesifik (Pancasila, Deret Angka, Pelayanan Publik, dll.)
+4. Sebagai power user, saya ingin menggunakan mode "agentic" untuk validasi kualitas soal yang lebih tinggi
 
-### Question Bank
-8. Sebagai pelajar, saya ingin browse kumpulan soal publik berdasarkan bahasa, tingkat kesulitan, format, dan topik, agar saya bisa menemukan soal yang sesuai
-9. Sebagai pelajar, saya ingin melihat detail soal (passage, pertanyaan, pilihan, jawaban) sebelum memutuskan menggunakannya
-10. Sebagai pelajar, saya ingin memberi rating dan melihat rating soal/paket dari pengguna lain, agar saya tahu kualitasnya
-11. Sebagai kreator, saya ingin mempublikasikan soal yang saya buat ke bank publik, agar orang lain bisa menggunakannya
-12. Sebagai kreator, saya ingin menyimpan soal sebagai privat, agar hanya saya yang bisa mengaksesnya
-13. Sebagai pelajar, saya ingin mencari soal berdasarkan keyword di teks bacaan atau pertanyaan
+## Exam Sections Supported
 
-### Package Builder & Combiner
-14. Sebagai pelajar, saya ingin membuat paket soal (bundle) dari beberapa soal yang saya pilih dari bank, agar saya bisa latihan dalam satu sesi terstruktur
-15. Sebagai kreator, saya ingin memberi judul, deskripsi, dan visibility (publik/privat) pada paket yang saya buat
-16. Sebagai pelajar, saya ingin mengkombinasikan section dari berbagai paket (misal: Reading dari Paket A, Writing dari Paket B) menjadi satu paket ujian baru, tanpa perlu generate ulang dengan AI
-17. Sebagai pelajar, saya ingin melihat estimasi durasi dan jumlah soal sebelum memulai ujian
-
-### Exam Interface
-18. Sebagai pelajar, saya ingin melihat teks bacaan dan soal secara side-by-side saat mengerjakan, agar saya tidak perlu scroll bolak-balik
-19. Sebagai pelajar, saya ingin timer yang menunjukkan sisa waktu pengerjaan, agar saya bisa mengatur pace
-20. Sebagai pelajar, saya ingin navigasi antar soal (previous/next/jump), agar saya bisa mengerjakan dengan fleksibel
-21. Sebagai pelajar, saya ingin menandai soal untuk direview nanti, agar saya bisa fokus dulu ke soal lain
-22. Sebagai pelajar, saya ingin melihat progress (soal ke-X dari total) selama ujian
-23. Sebagai pelajar, saya ingin jawaban saya tersimpan otomatis, agar tidak hilang jika koneksi terputus
-24. Sebagai pelajar, saya ingin hasil ujian langsung terlihat setelah selesai (auto-grade untuk soal objektif)
-
-### Analytics & Evaluation
-25. Sebagai pelajar, saya ingin melihat skor per-section (Reading/Writing/Listening/Speaking) setelah ujian, agar saya tahu kekuatan dan kelemahan saya
-26. Sebagai pelajar, saya ingin melihat breakdown akurasi per skill tag (grammar, vocabulary, inference, dll.), agar saya tahu area mana yang perlu diperbaiki
-27. Sebagai pelajar, saya ingin melihat tren progres dari waktu ke waktu (line chart akurasi), agar saya tahu apakah saya improving
-28. Sebagai pelajar, saya ingin melihat radar chart proficiency per skill, agar visualisasi kelemahan saya jelas
-29. Sebagai pelajar, saya ingin mendapat rekomendasi paket soal yang fokus ke kelemahan saya, agar saya bisa memperbaiki area tersebut secara terarah
-30. Sebagai pelajar, saya ingin melihat statistik: total soal dikerjakan, total waktu latihan, akurasi rata-rata
-
-### Settings & Profile
-31. Sebagai pengguna, saya ingin menyimpan API key saya (OpenAI-compatible) dengan aman (encrypted), agar saya tidak perlu input ulang setiap generate
-32. Sebagai pengguna, saya ingin mengatur base URL dan model name untuk AI provider, agar saya bisa pakai provider alternatif (OpenRouter, Groq, local LLM)
-33. Sebagai pengguna, saya ingin mengelola (tambah/edit/hapus) multiple API keys untuk provider berbeda
-34. Sebagai pengguna, saya ingin mengedit profil (nama, avatar) saya
-
-### Community
-35. Sebagai pelajar, saya ingin melihat paket soal "trending" atau "staff pick", agar saya bisa menemukan soal berkualitas tinggi
-36. Sebagai kreator, saya ingin melihat berapa kali paket soal saya digunakan orang lain
-37. Sebagai pelajar, saya ingin membagikan link paket soal ke teman
-
-## Exam Types Supported
-
-| Exam | Language | Levels | Focus Areas |
-|------|----------|--------|-------------|
-| IELTS Academic | English | Band 1-9 | Academic reading, formal writing |
-| TOEFL iBT | English | 0-120 | Academic English, university context |
-| JLPT | Japanese | N5-N1 | Kanji reading, grammar particles, text comprehension |
-| HSK | Chinese | HSK 1-6 | Character recognition, word choice, sentence structure |
-| Goethe / TestDaF | German | A1-C2 | Article/case, vocabulary in context, Lückentext |
+| Section | Type | Focus Areas |
+|---------|------|-------------|
+| TWK | Tes Wawasan Kebangsaan | Nasionalisme, Integritas, Bela Negara, Pilar Negara, Bahasa Indonesia |
+| TIU | Tes Intelegensia Umum | Analogi, Silogisme, Analitis, Deret Angka, Perbandingan, Soal Cerita, Figural |
+| TKP | Tes Karakteristik Pribadi | Pelayanan Publik, Jejaring Kerja, Sosial Budaya, TIK, Profesionalisme, Anti Radikalisme |
 
 ## Question Formats
 
-| Format | IELTS | TOEFL | JLPT | HSK | German | Auto-Gradeable |
-|--------|-------|-------|------|-----|--------|:---:|
-| Multiple Choice | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| True/False/Not Given | ✓ | ✓ | | | ✓ | ✓ |
-| Matching Headings | ✓ | ✓ | | | ✓ | ✓ |
-| Matching Information | ✓ | ✓ | | | ✓ | ✓ |
-| Fill in Blank | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Synonym / Vocabulary | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Grammar in Context | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Sentence Completion | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Summary Completion | ✓ | ✓ | | | | ✓ |
-| Cloze Test | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Reference (pronoun) | | ✓ | ✓ | | | ✓ |
-| Author's View | ✓ | ✓ | ✓ | | | ✓ |
-| Kanji Reading | | | ✓ | | | ✓ |
-| Particle Choice | | | ✓ | | | ✓ |
-| Article / Case Choice | | | | | ✓ | ✓ |
+Semua soal CPNS menggunakan format **Multiple Choice** dengan 5 pilihan jawaban (A, B, C, D, E). Beberapa format tambahan untuk latihan:
+- Multiple Choice (Standard)
+- Benar / Salah (Latihan Konsep)
+- Melengkapi Kalimat (Bahasa Indonesia)
+- Analogi & Silogisme (TIU)
+- Deret Angka (TIU)
 
 ## Implementation Decisions
 
@@ -328,4 +269,4 @@ A good test:
 - Timer di exam interface harus client-side dengan periodic sync ke server
 - PWA support sudah ada, perlu di-enhance untuk offline exam mode (cache soal)
 - Default theme: light, dark toggle tetap ada
-- Nama "Labas" dari "labs" + "bahasa"
+- Nama "Pram" dari "labs" + "bahasa"

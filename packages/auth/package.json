@@ -1,5 +1,5 @@
 {
-  "name": "@labas/auth",
+  "name": "@pram/auth",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -12,14 +12,14 @@
   },
   "scripts": {},
   "dependencies": {
-    "@labas/db": "workspace:*",
-    "@labas/env": "workspace:*",
+    "@pram/db": "workspace:*",
+    "@pram/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@labas/config": "workspace:*",
+    "@pram/config": "workspace:*",
     "typescript": "catalog:"
   }
 }

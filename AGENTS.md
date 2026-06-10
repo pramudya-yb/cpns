@@ -1,4 +1,4 @@
-# AGENTS.md — Labas Project Guide
+﻿# AGENTS.md — Pram Project Guide
 
 > This file is for AI agents. Read this first before making any changes.
 
@@ -6,7 +6,7 @@
 
 ## 1. Project Identity
 
-- **Name:** `labas` — AI-powered multi-language test practice platform.
+- **Name:** `pram` — AI-powered multi-language test practice platform.
 - **Repo type:** Turborepo monorepo (Bun workspaces).
 - **Workspace packages:** `apps/*`, `packages/*`.
 - **Runtime & package manager:** **Bun** (`packageManager: "bun@1.3.11"`).
@@ -23,7 +23,7 @@
 | DB Engine | PostgreSQL | Managed via Drizzle. |
 | DB ORM | Drizzle ORM | **Not Prisma.** |
 | Auth | Better-Auth | Email/password + OAuth. |
-| UI | shadcn/ui (shared) | Lives in `packages/ui`. Imported as `@labas/ui/components/*`. |
+| UI | shadcn/ui (shared) | Lives in `packages/ui`. Imported as `@pram/ui/components/*`. |
 | AI | OpenAI-compatible API | User-managed API keys via Settings UI. |
 | Build | Turborepo + `tsdown` | Server compiled with `tsdown`. |
 
@@ -32,7 +32,7 @@
 ## 3. Architecture Overview
 
 ```
-labas/
+pram/
 ├── apps/
 │   ├── web/          # Frontend (Vite, TanStack Router) — Port 5173
 │   └── server/       # Backend (Hono, tRPC) — Port 3000
@@ -46,7 +46,7 @@ labas/
 │   └── config/       # Shared TypeScript configs
 ```
 
-- **Internal imports** use the `@labas/*` workspace namespace.
+- **Internal imports** use the `@pram/*` workspace namespace.
 - Do **NOT** create cross-imports between `apps/*` directly; route through `packages/*`.
 
 ---
@@ -95,7 +95,7 @@ bun run build            # Build all packages
 - ❌ **Do not hardcode API keys** in source code. AI keys are user-managed via the Settings UI.
 - ❌ **Do not add global CSS** in `apps/web` without checking `packages/ui/src/styles/globals.css` for existing design tokens and CSS variables.
 - ❌ **Do not skip heading levels**. After `<h1>`, the next heading must be `<h2>`, not `<h3>` (or lower). Never have two `<h1>` on one page.
-- ❌ **Do not create custom modal/dialog components**. Use shadcn `<Dialog>` from `@labas/ui/components/dialog` — it provides built-in focus trap, escape key, scroll lock, and ARIA.
+- ❌ **Do not create custom modal/dialog components**. Use shadcn `<Dialog>` from `@pram/ui/components/dialog` — it provides built-in focus trap, escape key, scroll lock, and ARIA.
 - ❌ **Do not use `any`** in frontend TypeScript. Enforced by eslint `@typescript-eslint/no-explicit-any: "error"` in `apps/web/eslint.config.mjs`.
 
 ---
@@ -106,7 +106,7 @@ bun run build            # Build all packages
 - shadcn/ui primitives are shared via **`packages/ui`**.
 - Import components like this:
   ```tsx
-  import { Button } from "@labas/ui/components/button";
+  import { Button } from "@pram/ui/components/button";
   ```
 - To add new shadcn primitives, run from the **project root**:
   ```bash
@@ -233,7 +233,7 @@ export const Route = createFileRoute("/my-route")({
 - **Icon-only buttons**: Every `<button>` or `<Button>` with only an icon (no visible text) **must** have `aria-label`. The icon element (`<MaterialIcon>`, `<span>`) should NOT have `aria-hidden="true"` unless decorative.
 - **Heading hierarchy**: Never skip levels (`h1 → h2 → h3`, never `h1 → h3`). Exactly one `<h1>` per page. Heading level corresponds to semantic nesting, not visual size.
 - **Form labels**: Every `<Input>`, `<select>`, `<textarea>` needs an associated `<Label>` (with `htmlFor` + `id`) OR an `aria-label` attribute. Search inputs, OTP digits, and icon-only filter buttons are common offenders.
-- **Dialogs**: All modals use the shadcn `<Dialog>` component (from `@labas/ui/components/dialog`), which provides:
+- **Dialogs**: All modals use the shadcn `<Dialog>` component (from `@pram/ui/components/dialog`), which provides:
   - Focus trap inside dialog
   - Escape key to close
   - Scroll lock on body
@@ -286,7 +286,7 @@ export const Route = createFileRoute("/my-route")({
 - **Always use English** error messages in tRPC routers.
 - Use helper functions from `packages/api/src/lib/errors.ts`:
   ```ts
-  import { throwNotFound, throwForbidden, throwBadRequest } from "@labas/api/lib/errors";
+  import { throwNotFound, throwForbidden, throwBadRequest } from "@pram/api/lib/errors";
   assertOwnership(row, userId, "Question"); // throws NotFound or Forbidden
   ```
 - Never throw raw `new Error("...")` in tRPC routers.
@@ -294,7 +294,7 @@ export const Route = createFileRoute("/my-route")({
 ### Pagination
 - Use shared schema + helper for all list endpoints:
   ```ts
-  import { paginationSchema, paginateDefaults } from "@labas/api/lib/pagination";
+  import { paginationSchema, paginateDefaults } from "@pram/api/lib/pagination";
   .input(z.object({ search: z.string().optional(), ...paginationSchema?.shape }).optional())
   const { limit, offset } = paginateDefaults(input);
   ```
@@ -363,10 +363,10 @@ export const Route = createFileRoute("/my-route")({
 
 ### Integration DB (PGlite)
 - **PGlite** (`@electric-sql/pglite`) — PostgreSQL WASM in-memory.
-- Strategy: `mock.module("@labas/db")` intercept DB saat dynamic import untuk inject PGlite-based drizzle instance.
+- Strategy: `mock.module("@pram/db")` intercept DB saat dynamic import untuk inject PGlite-based drizzle instance.
 - Setup helper: `packages/api/src/__tests__/test-setup.ts` — skema 14 tabel via raw SQL + seed data.
-- Schema diimport dari `../../../db/src/schema` (langsung, bukan via `@labas/db`) untuk hindari env validation side-effect.
-- Env vars di-mock via `mock.module("@labas/env/server")` sebelum dynamic import.
+- Schema diimport dari `../../../db/src/schema` (langsung, bukan via `@pram/db`) untuk hindari env validation side-effect.
+- Env vars di-mock via `mock.module("@pram/env/server")` sebelum dynamic import.
 
 ### tRPC Router Testing
 - Gunakan `router.createCaller({ session, auth })` untuk memanggil procedure.

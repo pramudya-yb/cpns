@@ -9,8 +9,8 @@ import {
   TabsList,
   TabsTrigger,
   TabsContent,
-} from "@labas/ui/components/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
+} from "@pram/ui/components/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { TokenUsageChart } from "@/components/settings/TokenUsageChart";
 import { ApiKeyList } from "@/components/settings/ApiKeyList";

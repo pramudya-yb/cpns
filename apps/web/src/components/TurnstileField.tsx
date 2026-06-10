@@ -1,6 +1,6 @@
 import { Turnstile, type TurnstileInstance, type TurnstileProps } from "@marsidev/react-turnstile";
 import { forwardRef } from "react";
-import { env } from "@labas/env/web";
+import { env } from "@pram/env/web";
 
 export const TURNSTILE_SITE_KEY = env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY;
 

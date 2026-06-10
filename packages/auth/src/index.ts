@@ -1,6 +1,6 @@
-import { createDb } from "@labas/db";
-import * as schema from "@labas/db/schema/auth";
-import { env } from "@labas/env/server";
+import { createDb } from "@pram/db";
+import * as schema from "@pram/db/schema/auth";
+import { env } from "@pram/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 

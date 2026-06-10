@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import { Button } from "@labas/ui/components/button";
-import { Input } from "@labas/ui/components/input";
+import { Button } from "@pram/ui/components/button";
+import { Input } from "@pram/ui/components/input";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { EXAM_TYPES } from "@/lib/exam-constants";
 

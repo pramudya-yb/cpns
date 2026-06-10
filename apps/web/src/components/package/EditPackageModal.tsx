@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Input } from "@labas/ui/components/input";
-import { Button } from "@labas/ui/components/button";
+import { Input } from "@pram/ui/components/input";
+import { Button } from "@pram/ui/components/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@labas/ui/components/dialog";
+} from "@pram/ui/components/dialog";
 
 export function EditPackageModal({
   initialTitle,

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and, desc, sql, inArray, ilike } from "drizzle-orm";
 import { router, protectedProcedure } from "../index";
-import { db } from "@labas/db";
+import { db } from "@pram/db";
 import {
   testAttempt,
   sectionResult,
@@ -11,7 +11,7 @@ import {
   sectionQuestion,
   question,
   examType,
-} from "@labas/db";
+} from "@pram/db";
 import { paginationSchema, paginateDefaults } from "../lib/pagination";
 import { assertOwnership } from "../lib/ownership";
 import { throwNotFound, throwForbidden, throwBadRequest } from "../lib/errors";

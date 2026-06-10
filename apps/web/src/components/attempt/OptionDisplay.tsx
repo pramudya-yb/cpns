@@ -1,6 +1,6 @@
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
-import { MCQ_FORMATS, McqFormat } from "@/lib/question-formats";
+import { MCQ_FORMATS } from "@/lib/question-formats";
 
 interface McqOptionItem {
   key: string;

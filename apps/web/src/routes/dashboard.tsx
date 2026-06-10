@@ -4,8 +4,8 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
 import { routeShell } from "@/lib/route-shell";
 import { trpc } from "@/utils/trpc";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { TourGuide } from "@/components/TourGuide";
 import { DonationModal } from "@/components/DonationModal";
@@ -118,7 +118,7 @@ function HomeComponent() {
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-headline font-bold text-[var(--clay-black)] mb-1">
-                  Selamat Datang di Labas
+                  Selamat Datang di Pram
                 </h2>
                 <p className="text-sm text-[var(--warm-charcoal)] mb-4">
                   Platform latihan ujian bahasa berbasis AI. Ikuti 3 langkah mudah untuk memulai:

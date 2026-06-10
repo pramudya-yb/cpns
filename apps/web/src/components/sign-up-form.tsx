@@ -1,7 +1,7 @@
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@labas/ui/components/card";
-import { Input } from "@labas/ui/components/input";
-import { Label } from "@labas/ui/components/label";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@pram/ui/components/card";
+import { Input } from "@pram/ui/components/input";
+import { Label } from "@pram/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";

@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/pglite";
 import * as schema from "../../../db/src/schema";
 import { closeTestPGlite, getTestPGlite } from "./test-setup";
 
-mock.module("@labas/env/server", () => ({
+mock.module("@pram/env/server", () => ({
   env: {
     DATABASE_URL: "postgres://localhost:5432/test",
     BETTER_AUTH_SECRET: "a".repeat(32),
@@ -33,7 +33,7 @@ describe("package router", () => {
     const pg = await getTestPGlite();
     testDb = drizzle(pg, { schema });
 
-    mock.module("@labas/db", () => ({
+    mock.module("@pram/db", () => ({
       __esModule: true,
       ...schema,
       db: testDb,

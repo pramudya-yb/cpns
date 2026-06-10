@@ -1,6 +1,6 @@
 import { type ApiKeyConfig } from "@/hooks/use-api-key";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 interface ProviderOption {

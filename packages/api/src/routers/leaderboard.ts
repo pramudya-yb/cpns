@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { eq, and, sql, gte, desc } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
-import { db } from "@labas/db";
-import { testAttempt, testPackage, user } from "@labas/db";
+import { db } from "@pram/db";
+import { testAttempt, testPackage, user } from "@pram/db";
 import { paginationSchema, paginateDefaults } from "../lib/pagination";
 
 const periodSchema = z.enum(["today", "week", "month", "all"]);

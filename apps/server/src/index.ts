@@ -1,14 +1,14 @@
 import { trpcServer } from "@hono/trpc-server";
-import { createContext } from "@labas/api/context";
-import { appRouter } from "@labas/api/routers/index";
-import { checkRateLimitAllowed } from "@labas/api/lib/rate-limit";
-import { auth } from "@labas/auth";
-import { env } from "@labas/env/server";
-import { withRequestId } from "@labas/api/logger";
+import { createContext } from "@pram/api/context";
+import { appRouter } from "@pram/api/routers/index";
+import { checkRateLimitAllowed } from "@pram/api/lib/rate-limit";
+import { auth } from "@pram/auth";
+import { env } from "@pram/env/server";
+import { withRequestId } from "@pram/api/logger";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-import "@labas/api/queue";
+import "@pram/api/queue";
 
 const app = new Hono();
 
@@ -73,7 +73,7 @@ app.use(
 );
 
 app.get("/sitemap.xml", (c) => {
-  const baseUrl = "https://labas.rogasper.com";
+  const baseUrl = "https://pram.rogasper.com";
   const urls = [
     { loc: `${baseUrl}/`, changefreq: "weekly", priority: "1.0" },
   ];

@@ -2,8 +2,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 import type { Context } from "./context";
-import { db } from "@labas/db";
-import { user } from "@labas/db";
+import { db } from "@pram/db";
+import { user } from "@pram/db";
 
 export const t = initTRPC.context<Context>().create();
 

@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@labas/ui/components/card";
-import { Button } from "@labas/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
+import { Button } from "@pram/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import type { PackageSection } from "@/lib/types";
 

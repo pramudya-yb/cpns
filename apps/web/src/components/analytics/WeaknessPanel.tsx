@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@labas/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatLabel } from "@/lib/format";
 
@@ -57,7 +57,7 @@ export function WeaknessPanel({ weaknesses, recommendations }: WeaknessPanelProp
         {hasData ? (
           <>
             <div className="space-y-3">
-              {weaknesses.map((w, i) => (
+              {weaknesses.map((w, _i) => (
                 <div
                   key={`${w.type}-${w.name}`}
                   className="flex items-center gap-4 p-3 rounded-[var(--radius-md)] bg-[var(--warm-cream)] border-2 border-[var(--oat-border)]"

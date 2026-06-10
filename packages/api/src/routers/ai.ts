@@ -1,16 +1,16 @@
 import { z } from "zod";
 import { eq, desc, and, gte, sql } from "drizzle-orm";
 import { router, protectedProcedure } from "../index";
-import { type GenerationInput, generationInputSchema } from "@labas/ai/schemas";
+import { type GenerationInput, generationInputSchema } from "@pram/ai/schemas";
 import { cancelGenerationJob, enqueueGeneration } from "../queue";
-import { db } from "@labas/db";
-import { question, generationJob } from "@labas/db";
+import { db } from "@pram/db";
+import { question, generationJob } from "@pram/db";
 import { paginationSchema, paginateDefaults } from "../lib/pagination";
 import { throwNotFound, throwForbidden, throwBadRequest } from "../lib/errors";
 import { checkDailyBudget } from "../lib/rate-limit";
 import { decryptApiKey } from "../lib/encryption";
 import { isUserSuspended, getUserCredit, autoRefillIfEligible } from "../lib/credit";
-import { env } from "@labas/env/server";
+import { env } from "@pram/env/server";
 
 const DAILY_TOKEN_BUDGET = 500_000;
 

@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { eq, desc, sql, count, ilike, or } from "drizzle-orm";
 import { adminProcedure, protectedProcedure, router } from "../index";
-import * as schema from "@labas/db";
-import { db } from "@labas/db";
+import * as schema from "@pram/db";
+import { db } from "@pram/db";
 import { paginationSchema, paginateDefaults } from "../lib/pagination";
 import { throwNotFound, throwForbidden, throwBadRequest } from "../lib/errors";
 import { getUserCredit, getLastRefillAt, getPoolUsage, getConfig, setConfig, autoRefillIfEligible } from "../lib/credit";
-import { env } from "@labas/env/server";
+import { env } from "@pram/env/server";
 
 function audit(adminUserId: string, action: string, targetUserId: string | null, details?: Record<string, unknown>) {
   return db.insert(schema.adminAuditLog).values({

@@ -1,5 +1,4 @@
-import { Card, CardContent } from "@labas/ui/components/card";
-import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { Avatar } from "@/components/ui/Avatar";
 
 interface RankingEntry {

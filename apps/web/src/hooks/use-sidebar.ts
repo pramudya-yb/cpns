@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-const STORAGE_KEY = "labas_sidebar_collapsed";
+const STORAGE_KEY = "pram_sidebar_collapsed";
 
 function getSnapshot(): boolean {
   if (typeof window === "undefined") return false;

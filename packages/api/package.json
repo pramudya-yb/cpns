@@ -1,5 +1,5 @@
 {
-  "name": "@labas/api",
+  "name": "@pram/api",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -14,10 +14,10 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@labas/ai": "workspace:*",
-    "@labas/auth": "workspace:*",
-    "@labas/db": "workspace:*",
-    "@labas/env": "workspace:*",
+    "@pram/ai": "workspace:*",
+    "@pram/auth": "workspace:*",
+    "@pram/db": "workspace:*",
+    "@pram/env": "workspace:*",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "bcryptjs": "^3.0.3",
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.5",
-    "@labas/config": "workspace:*",
+    "@pram/config": "workspace:*",
     "@types/bcryptjs": "^3.0.0",
     "@types/nodemailer": "^8.0.0",
     "hono": "catalog:",

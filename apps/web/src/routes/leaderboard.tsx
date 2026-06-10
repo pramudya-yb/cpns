@@ -3,8 +3,8 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@labas/ui/components/select";
+} from "@pram/ui/components/select";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { EXAM_TYPES } from "@/lib/exam-constants";
 import { RankingPodium } from "@/components/leaderboard/RankingPodium";

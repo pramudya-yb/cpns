@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 
 export function NotFoundPage() {
   return (

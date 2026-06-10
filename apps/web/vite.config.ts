@@ -43,8 +43,8 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "labas",
-        short_name: "labas",
+        name: "pram",
+        short_name: "pram",
         description: "AI-powered multi-language test practice platform",
         theme_color: "#0c0c0c",
       },

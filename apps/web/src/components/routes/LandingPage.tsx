@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Button } from "@labas/ui/components/button";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { useState } from "react";
 import { CommunityModal } from "@/components/CommunityModal";
@@ -46,8 +46,8 @@ export function LandingPage() {
       {/* Navbar */}
       <nav className="w-full px-6 py-4 md:px-12 lg:px-16 flex items-center justify-between max-w-7xl mx-auto z-50 sticky top-0 bg-[var(--warm-cream)] border-b-2 border-[var(--oat-border)]">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Labas Logo" className="h-10 w-auto object-contain" />
-          <span className="font-headline font-semibold text-2xl tracking-[-0.64px] text-[var(--clay-black)] hidden sm:block">Labas</span>
+          <img src="/logo.png" alt="Pram Logo" className="h-10 w-auto object-contain" />
+          <span className="font-headline font-semibold text-2xl tracking-[-0.64px] text-[var(--clay-black)] hidden sm:block">Pram</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <button
@@ -63,7 +63,7 @@ export function LandingPage() {
             <MaterialIcon name="favorite" className="text-xl" />
             <span className="font-semibold text-base">Support</span>
           </a>
-          <a href="https://github.com/rogasper/labas-bahasa" target="_blank" rel="noopener noreferrer" className="text-[var(--warm-charcoal)] hover:text-[var(--clay-black)] transition-colors p-2 hidden sm:flex items-center gap-2" aria-label="GitHub Repository">
+          <a href="https://github.com/rogasper/pram-bahasa" target="_blank" rel="noopener noreferrer" className="text-[var(--warm-charcoal)] hover:text-[var(--clay-black)] transition-colors p-2 hidden sm:flex items-center gap-2" aria-label="GitHub Repository">
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current" aria-hidden="true">
               <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
             </svg>
@@ -106,7 +106,7 @@ export function LandingPage() {
                   Mulai Latihan Sekarang
                 </Button>
               </Link>
-              <a href="https://github.com/rogasper/labas-bahasa" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+              <a href="https://github.com/rogasper/pram-bahasa" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="ghost" className="w-full sm:w-auto text-[var(--clay-black)] rounded-[24px] h-[64px] px-8 text-xl font-semibold hover:bg-[var(--oat-light)] border-2 border-transparent flex items-center gap-3">
                   <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current" aria-hidden="true">
                     <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
@@ -122,7 +122,7 @@ export function LandingPage() {
             <div className="relative w-full max-w-[650px] lg:max-w-[750px]">
               <img 
                 src="/hero_img.png" 
-                alt="Labas Dashboard Preview" 
+                alt="Pram Dashboard Preview" 
                 className="w-full h-auto object-contain transform transition-transform duration-700 group-hover:scale-105 group-hover:-rotate-1 drop-shadow-[0_20px_50px_rgba(0,0,0,0.15)] relative z-10"
               />
               {/* Variatif Floating Elements */}
@@ -323,7 +323,7 @@ export function LandingPage() {
           <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16">
             <div className="text-center max-w-4xl mx-auto mb-24 space-y-6">
               <h2 className="text-[50px] md:text-[60px] font-headline font-semibold text-[var(--clay-black)] tracking-[-2.4px] leading-tight">
-                Fitur Unggulan Labas
+                Fitur Unggulan Pram
               </h2>
               <p className="text-2xl text-[var(--warm-charcoal)]">
                 Desain yang elegan, namun kokoh untuk mempercepat kesiapan Anda menghadapi ujian.
@@ -434,15 +434,15 @@ export function LandingPage() {
                 Pertanyaan Umum
               </h2>
               <p className="text-[var(--ube-300)] text-2xl max-w-2xl mx-auto">
-                Temukan jawaban cepat untuk pertanyaan seputar Labas.
+                Temukan jawaban cepat untuk pertanyaan seputar Pram.
               </p>
             </div>
 
             <div className="bg-[var(--ube-900)]/40 backdrop-blur-sm border-2 border-[var(--ube-300)]/30 rounded-[32px] p-8 md:p-12 shadow-2xl">
               <FaqItem 
                 isDark
-                question="Apa itu Labas?" 
-                answer="Labas adalah platform latihan ujian bahasa berbasis AI yang dirancang untuk membantu Anda berlatih dan menguasai bahasa asing melalui simulasi, bank soal interaktif, dan analitik performa." 
+                question="Apa itu Pram?" 
+                answer="Pram adalah platform latihan ujian bahasa berbasis AI yang dirancang untuk membantu Anda berlatih dan menguasai bahasa asing melalui simulasi, bank soal interaktif, dan analitik performa." 
               />
               <FaqItem 
                 isDark
@@ -451,13 +451,13 @@ export function LandingPage() {
               />
               <FaqItem 
                 isDark
-                question="Apakah Labas sepenuhnya gratis?" 
-                answer="Platform Labas dapat digunakan secara gratis untuk fitur dasar. Untuk fitur generasi soal berbasis AI, kami menggunakan model Bring-Your-Own-Key (BYOK). Anda cukup memasukkan API Key OpenAI Anda." 
+                question="Apakah Pram sepenuhnya gratis?" 
+                answer="Platform Pram dapat digunakan secara gratis untuk fitur dasar. Untuk fitur generasi soal berbasis AI, kami menggunakan model Bring-Your-Own-Key (BYOK). Anda cukup memasukkan API Key OpenAI Anda." 
               />
               <FaqItem 
                 isDark
-                question="Bahasa apa saja yang didukung oleh Labas?" 
-                answer="Saat ini Labas mendukung latihan untuk berbagai ujian profisiensi bahasa populer seperti Bahasa Inggris (TOEFL, IELTS, TOEIC), Jepang (JLPT), Korea (TOPIK), dan banyak lagi." 
+                question="Bahasa apa saja yang didukung oleh Pram?" 
+                answer="Saat ini Pram mendukung latihan untuk berbagai ujian profisiensi bahasa populer seperti Bahasa Inggris (TOEFL, IELTS, TOEIC), Jepang (JLPT), Korea (TOPIK), dan banyak lagi." 
               />
             </div>
           </div>
@@ -496,7 +496,7 @@ export function LandingPage() {
               <MaterialIcon name="photo_camera" />
               <span className="font-semibold">@rogasper</span>
             </a>
-            <a href="https://github.com/rogasper/labas-bahasa" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[var(--matcha-700)] transition-colors">
+            <a href="https://github.com/rogasper/pram-bahasa" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-[var(--matcha-700)] transition-colors">
               <MaterialIcon name="code" />
               <span className="font-semibold">GitHub</span>
             </a>
@@ -523,7 +523,7 @@ export function LandingPage() {
           </div>
         </div>
         <p className="text-[var(--warm-charcoal)] font-semibold text-lg">
-          &copy; {new Date().getFullYear()} Labas. Didesain dengan penuh kehangatan.
+          &copy; {new Date().getFullYear()} Pram. Didesain dengan penuh kehangatan.
         </p>
       </footer>
     </div>

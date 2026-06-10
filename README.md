@@ -1,8 +1,8 @@
-<p align="center">
-  <img src="./apps/web/public/logo.png" alt="Labas" width="200" />
+﻿<p align="center">
+  <img src="./apps/web/public/logo.png" alt="Pram" width="200" />
 </p>
 
-<h1 align="center">Labas</h1>
+<h1 align="center">Pram</h1>
 
 <p align="center">
   <strong>AI-powered multi-language test practice platform</strong><br />
@@ -20,38 +20,30 @@
 
 ---
 
-## What is Labas?
+## What is Pram?
 
-**Labas** is an open-source platform for practicing foreign-language proficiency exams. Users can generate reading (and writing) questions with AI, save them into question packages, take timed mock tests, and review results with explanations in **Bahasa Indonesia** (foreign script such as kanji, hanzi, hangul, or Arabic may appear when relevant).
+**Pram** is an open-source platform for practicing CPNS (Seleksi Calon Pegawai Negeri Sipil) exams. Users can generate questions for TWK, TIU, and TKP with AI, save them into question packages, take timed mock tests, and review results with detailed explanations in **Bahasa Indonesia**.
 
 The project is a **Turborepo monorepo** managed with **Bun**. The web app talks to a **Hono + tRPC** backend backed by **PostgreSQL**, **Redis** (job queue), and **Better Auth**.
 
 ## Features
 
-- **AI question generation** — Quick mode (single-pass) and Agentic mode (multi-step pipeline with passage validation and quality checks)
-- **8 exam types** — IELTS, TOEFL, JLPT, HSK, Goethe, TOPIK, TOAFL, DELE
-- **20+ question formats** — Multiple choice, true/false/not given, fill-in-blank, kanji reading, matching, and more
+- **AI question generation** — Quick mode (single-pass) and Agentic mode (multi-step pipeline)
+- **CPNS Focus** — TWK, TIU, and TKP sections
+- **20+ question formats** — Multiple choice, true/false, fill-in-blank, and more
 - **Question bank & packages** — Organize generated questions into shareable or private packages
 - **Mock tests & attempts** — Timed practice sessions with scoring and review
 - **Analytics & leaderboard** — Track performance over time
-- **User-managed AI keys** — Bring your own OpenAI-compatible API key via Settings (never hardcoded in server env)
-- **Credit system** — Token-based usage tracking for AI generation
-- **Admin panel** — User management, moderation, jobs, credits, and featured content
+- **User-managed AI keys** — Bring your own OpenAI-compatible API key
 - **PWA** — Installable progressive web app
-- **Accessible UI** — Shared shadcn/ui components with skip links, proper ARIA, and focus management
 
-## Supported Exams
+## Supported Exam Sections
 
-| Exam | Language | Notes |
-|------|----------|-------|
-| IELTS Academic | English | Reading & Writing sections |
-| TOEFL iBT | English | Reading & Writing sections |
-| JLPT | Japanese | Kanji annotations supported (`漢字(かんじ)`) |
-| HSK | Chinese | |
-| Goethe-Zertifikat | German | |
-| TOPIK | Korean | Particles, honorifics, speech levels |
-| TOAFL | Arabic | RTL text support |
-| DELE | Spanish | Verb conjugation focus |
+| Section | Type | Notes |
+|---------|------|-------|
+| TWK | Tes Wawasan Kebangsaan | Nasionalisme, Integritas, Bela Negara, Pilar Negara, Bahasa Indonesia |
+| TIU | Tes Intelegensia Umum | Verbal, Numerik, Figural |
+| TKP | Tes Karakteristik Pribadi | Pelayanan Publik, Jejaring Kerja, Sosial Budaya, TIK, Profesionalisme, Anti Radikalisme |
 
 ## Tech Stack
 
@@ -81,8 +73,8 @@ The project is a **Turborepo monorepo** managed with **Bun**. The web app talks 
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/<your-org>/labas.git
-cd labas
+git clone https://github.com/<your-org>/pram.git
+cd pram
 bun install
 ```
 
@@ -111,7 +103,7 @@ Edit **`apps/server/.env`**:
 
 ```env
 # PostgreSQL (matches docker-compose defaults)
-DATABASE_URL=postgresql://postgres:password@localhost:5432/labas
+DATABASE_URL=postgresql://postgres:password@localhost:5432/pram
 
 # Redis (defaults to redis://localhost:6379 if omitted)
 REDIS_URL=redis://localhost:6379
@@ -186,7 +178,7 @@ AI logic lives in [`packages/ai/`](./packages/ai/).
 ## Project Structure
 
 ```
-labas/
+pram/
 ├── apps/
 │   ├── web/              # Frontend (React + TanStack Router) — port 3001
 │   └── server/           # Backend entry (Hono + tRPC) — port 3000
@@ -202,7 +194,7 @@ labas/
 └── turbo.json
 ```
 
-Internal imports use the `@labas/*` workspace namespace. Apps should not import from each other directly — share code through `packages/*`.
+Internal imports use the `@pram/*` workspace namespace. Apps should not import from each other directly — share code through `packages/*`.
 
 ## Available Scripts
 
@@ -257,7 +249,7 @@ npx shadcn@latest add accordion dialog -c packages/ui
 Import shared components:
 
 ```tsx
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 ```
 
 Design tokens and global styles: [`packages/ui/src/styles/globals.css`](./packages/ui/src/styles/globals.css).
@@ -280,7 +272,7 @@ For AI-related changes, see the **AI Generation Context** section in `AGENTS.md`
 
 ## Support
 
-If you find Labas helpful and want to support its ongoing development, consider buying the creator a coffee! Your support helps cover API and hosting costs. ☕
+If you find Pram helpful and want to support its ongoing development, consider buying the creator a coffee! Your support helps cover API and hosting costs. ☕
 
 - **[Saweria](https://saweria.co/rogasper)** (Indonesian supporters)
 - **[Ko-fi](https://ko-fi.com/rogasper)** (International)

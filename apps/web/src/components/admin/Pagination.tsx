@@ -1,4 +1,4 @@
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 
 interface PaginationProps {
   page: number;

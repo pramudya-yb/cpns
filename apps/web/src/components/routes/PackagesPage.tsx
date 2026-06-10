@@ -1,17 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { authClient } from "@/lib/auth-client";
 import { trpc, queryClient } from "@/utils/trpc";
-import { Input } from "@labas/ui/components/input";
-import { Button } from "@labas/ui/components/button";
-import { Card } from "@labas/ui/components/card";
+import { Input } from "@pram/ui/components/input";
+import { Button } from "@pram/ui/components/button";
+import { Card } from "@pram/ui/components/card";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
-} from "@labas/ui/components/tabs";
+} from "@pram/ui/components/tabs";
 import {
   Select,
   SelectContent,
@@ -19,7 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@labas/ui/components/select";
+} from "@pram/ui/components/select";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { GettingStartedCard } from "@/components/GettingStartedCard";
 import { CalloutCard } from "@/components/bank/CalloutCard";
@@ -166,11 +166,11 @@ export function PackagesComponent() {
 
   // ── Private callout state ──
   const [calloutDismissed, setCalloutDismissed] = useState(
-    typeof window !== "undefined" && localStorage.getItem("labas-packages-private-callout-dismissed") === "true",
+    typeof window !== "undefined" && localStorage.getItem("pram-packages-private-callout-dismissed") === "true",
   );
 
   const handleDismissCallout = () => {
-    localStorage.setItem("labas-packages-private-callout-dismissed", "true");
+    localStorage.setItem("pram-packages-private-callout-dismissed", "true");
     setCalloutDismissed(true);
   };
 
@@ -438,7 +438,7 @@ export function PackagesComponent() {
 }
 
 // ── Packages page tour ──
-const PACKAGES_TOUR_KEY = "labas-page-tour-packages";
+const PACKAGES_TOUR_KEY = "pram-page-tour-packages";
 const packagesPageSteps: Step[] = [
   {
     target: "[data-tour='packages-header']",

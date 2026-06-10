@@ -1,5 +1,5 @@
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
-import { Card, CardContent } from "@labas/ui/components/card";
+import { Card, CardContent } from "@pram/ui/components/card";
 import { formatTime } from "@/lib/time";
 
 interface OverviewCardsProps {

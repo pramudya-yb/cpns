@@ -10,40 +10,46 @@ export function buildQuickModePrompt(input: GenerationInput): string {
 
   const questionSchemaJson = getQuestionJsonSchemaDescription();
 
-  return `You are an expert exam question writer for ${examType} ${section.toLowerCase()} section.
+  return `You are an expert exam question writer for CPNS (Seleksi Calon Pegawai Negeri Sipil) specifically for the ${section} section.
 
-Generate ${questionCount} authentic, high-quality reading comprehension questions.
+Generate ${questionCount} authentic, high-quality questions for CPNS.
 
-EXAM: ${examType}
+EXAM: CPNS
 SECTION: ${section}
 DIFFICULTY: ${difficulty}/5
 TOPICS: ${topics.join(", ")}
 FORMATS TO GENERATE: ${formats.join(", ")}
 
+CONTEXT FOR SECTIONS:
+- TWK (Tes Wawasan Kebangsaan): Fokus pada Pancasila, UUD 1945, NKRI, Bhinneka Tunggal Ika, Nasionalisme, Integritas, Bela Negara, Pilar Negara, dan Bahasa Indonesia.
+- TIU (Tes Intelegensia Umum): Fokus pada Verbal (Analogi, Silogisme, Analitis), Numerik (Deret Angka, Perbandingan Kuantitatif, Soal Cerita), dan Figural.
+- TKP (Tes Karakteristik Pribadi): Fokus pada Pelayanan Publik, Jejaring Kerja, Sosial Budaya, TIK, Profesionalisme, dan Anti Radikalisme.
+- Teknis (SKB Teknis Umum): Soal teknis sesuai jabatan yang dilamar.
+- Pertanahan_Dasar / Pertanahan & Agraria: Hukum Agraria (UUPA No. 5/1960), jenis-jenis hak atas tanah (HM, HGU, HGB, HP, HPL), konversi hak, tanah negara, tanah adat, reforma agraria, regulasi BPN/ATR.
+- Pengukuran_Kadastral / Pengukuran & Pemetaan Kadastral: Ilmu ukur tanah, pengukuran batas bidang, peta kadastral, sistem koordinat TM3, GPS/GNSS, drone, fotogrametri, Kadaster, KKP, BHUMI, Peta ZNT.
+- Pendaftaran_Tanah / Pendaftaran Tanah & Sertipikat: PP No. 24/1997, PTSL, buku tanah, surat ukur, sertipikat, pemeliharaan data, balik nama, pemecahan/penggabungan, sertipikat elektronik, hak tanggungan.
+- Pengadaan_Tanah / Pengadaan Tanah & Ganti Rugi: UU No. 2/2012, Perpres No. 71/2012, tahapan pengadaan, penetapan lokasi, inventarisasi, penilaian ganti rugi, musyawarah, konsignasi, PSN.
+- Pengendalian_Pertanahan / Pengendalian & Penertiban Tanah: Tanah terlantar (PP No. 20/2021), penertiban absentee, monitoring penggunaan tanah, alih fungsi lahan, sengketa-konflik-perkara pertanahan, mediasi.
+- Penilaian_Tanah / Penilaian Tanah & Properti: Zona Nilai Tanah (ZNT), NIR, metode penilaian tanah (perbandingan pasar/biaya/pendapatan), penilai publik, NJOP, faktor nilai tanah.
+
 INSTRUCTIONS:
 ${buildContentLanguageRules(examType)}
 ${buildExplanationLanguageRule(examType)}
-- For Korean (TOPIK): Focus on particles, honorifics (speech levels), and functional grammar.
-- For Arabic (TOAFL): Support RTL text. Focus on I'rab (case endings/vowel changes) and grammar.
-- For Spanish (DELE): Focus on verb conjugation by subject and agreement.
-- Passage length should be appropriate for the exam type and difficulty.
+- Passage length should be appropriate for the difficulty.
 - Each question must have:
-  * a reading passage (passageText)
-   * a clear question prompt (questionText) — in exam language, NOT Bahasa Indonesia
+  * a reading passage or context (passageText) — Wajib Bahasa Indonesia
+   * a clear question prompt (questionText) — Wajib Bahasa Indonesia
    * a correct answer (correctAnswer)
-   * an explanation (explanation) — Bahasa Indonesia, boleh sisipkan istilah/kanji/kata ujian bila perlu
+   * a detailed explanation (explanation) — Wajib Bahasa Indonesia
   * difficulty level (${difficulty})
   * relevant skill tags (skillTags)
-- For JLPT/TOPIK kanji/hanja: Include reading annotations in format: 漢字(かんじ) for words that have readings.
-- Questions should test real comprehension, not just surface-level recall.
-- For multiple choice: always provide 4 options labeled A, B, C, D.
+- For multiple choice: always provide 5 options labeled A, B, C, D, E (standard for CPNS).
 - Options must be plausible distractors — one clearly correct answer.
 ${OPTION_QUALITY_RULES}
 - For matching_pairs: Provide options as an array of {key, text} where key is the left item identifier and text is the left item. correctAnswer should be a serialized mapping like "A:1,B:2,C:3" matching each left key to its right pair.
-- For error_recognition: options are error segments (A, B, C, D) and correctAnswer is the key of the segment containing an error.
-- For text_insertion: options are position markers (A, B, C, D) within the passage where a sentence could be inserted. correctAnswer is the best position key.
+- For error_recognition: options are error segments (A, B, C, D, E) and correctAnswer is the key of the segment containing an error.
+- For text_insertion: options are position markers (A, B, C, D, E) within the passage where a sentence could be inserted.
 - For sentence_arrangement: Provide options as shuffled fragments in random order. correctAnswer is the correct order as comma-separated keys (e.g. "D,A,C,B").
-- For matching_information: options are information items with key and text. correctAnswer is the correct match as serialized mapping.
 
 OUTPUT FORMAT:
 Return ONLY a valid JSON object with this exact structure (no markdown code blocks, no extra text):
@@ -55,6 +61,6 @@ ${questionSchemaJson.split("\n").map((l) => "    " + l).join("\n")}
   ]
 }
 
-You may reuse the same passage for multiple questions, or generate a new passage per question — whichever is more natural for the exam type.
+You may reuse the same passage for multiple questions, or generate a new passage per question.
 `;
 }

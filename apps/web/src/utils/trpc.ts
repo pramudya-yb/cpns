@@ -1,5 +1,5 @@
-import type { AppRouter } from "@labas/api/routers/index";
-import { env } from "@labas/env/web";
+import type { AppRouter } from "@pram/api/routers/index";
+import { env } from "@pram/env/web";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";

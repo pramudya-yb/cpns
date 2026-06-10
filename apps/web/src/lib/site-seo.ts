@@ -1,5 +1,5 @@
-export const SITE_URL = "https://labas.rogasper.com";
-export const SITE_NAME = "Labas";
+export const SITE_URL = "https://pram.rogasper.com";
+export const SITE_NAME = "Pram";
 
 /** Match rogasper.com: separate OG (PNG) + Twitter (JPEG) assets for crawler compatibility. */
 export const OG_IMAGE_PATH = "/opengraph-image.png";
@@ -12,9 +12,9 @@ export const TWITTER_IMAGE_URL = `${SITE_URL}${TWITTER_IMAGE_PATH}`;
 export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 630;
 export const OG_IMAGE_ALT =
-  "Labas — platform latihan ujian bahasa dengan AI Generator dan simulasi tes";
+  "Pram — platform latihan ujian bahasa dengan AI Generator dan simulasi tes";
 
-export const DEFAULT_SITE_TITLE = "Labas — AI-Powered Exam Practice Platform";
+export const DEFAULT_SITE_TITLE = "Pram — AI-Powered Exam Practice Platform";
 export const DEFAULT_SITE_DESCRIPTION =
   "Generate AI-powered practice questions for JLPT, TOPIK, TOAFL, and more. Practice smarter with adaptive test preparation.";
 

@@ -33,10 +33,10 @@ export const COMMUNITY_PLATFORM_META: Record<
 /** Satu sumber data — tambah Discord cukup isi `href` di entri bawah. */
 export const COMMUNITY_CHANNELS: CommunityChannel[] = [
   {
-    id: "labas-whatsapp",
+    id: "pram-whatsapp",
     platform: "whatsapp",
-    name: "Labas — Open Source",
-    description: "Laporkan bug, usulkan fitur, atau diskusi pengembangan Labas.",
+    name: "Pram — Open Source",
+    description: "Laporkan bug, usulkan fitur, atau diskusi pengembangan Pram.",
     href: "https://chat.whatsapp.com/JT6bDIXMQ5x6SUQCA1aDWB",
     icon: "groups",
   },
@@ -50,16 +50,16 @@ export const COMMUNITY_CHANNELS: CommunityChannel[] = [
   },
   // Aktifkan saat server Discord siap — cukup isi href:
   {
-    id: "labas-discord",
+    id: "pram-discord",
     platform: "discord",
-    name: "Labas Discord",
+    name: "Pram Discord",
     description: "Diskusi async, bug report terstruktur, dan pengumuman fitur baru.",
     href: null,
     icon: "chat",
   },
 ];
 
-export const COMMUNITY_PROMPT_STORAGE_KEY = "labas_community_prompt_seen";
+export const COMMUNITY_PROMPT_STORAGE_KEY = "pram_community_prompt_seen";
 
 const PLATFORM_ORDER: CommunityPlatform[] = ["whatsapp", "discord"];
 

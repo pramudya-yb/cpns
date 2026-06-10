@@ -1,19 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useApiKeys } from "@/hooks/use-api-key";
-import { useGenerationJobs, type CompletedResult } from "@/hooks/use-generation-jobs";
+import { useGenerationJobs } from "@/hooks/use-generation-jobs";
 import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@labas/ui/components/select";
+} from "@pram/ui/components/select";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { TestBlueprintCard } from "@/components/generate/TestBlueprintCard";
 import { ResultSection } from "@/components/generate/ResultSection";
@@ -58,7 +57,7 @@ export function RouteComponent() {
   const {
     activeCount,
     completedResults,
-    isGenerating,
+    isGenerating: _isGenerating,
     error,
     addJob,
     resetAll,
@@ -764,7 +763,7 @@ export function RouteComponent() {
 }
 
 // ── Generate page tour ──
-const GENERATE_TOUR_KEY = "labas-page-tour-generate";
+const GENERATE_TOUR_KEY = "pram-page-tour-generate";
 const generatePageSteps: Step[] = [
   {
     target: "[data-tour='generate-exam-type']",

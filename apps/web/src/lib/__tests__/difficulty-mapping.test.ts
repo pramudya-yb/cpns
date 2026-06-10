@@ -8,7 +8,7 @@ describe("DIFFICULTY_LABELS", () => {
   });
 
   it("each exam has exactly 5 difficulty levels", () => {
-    for (const [exam, labels] of Object.entries(DIFFICULTY_LABELS)) {
+    for (const [_exam, labels] of Object.entries(DIFFICULTY_LABELS)) {
       expect(labels).toHaveLength(5);
     }
   });

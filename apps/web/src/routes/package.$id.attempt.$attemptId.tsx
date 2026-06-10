@@ -5,7 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useTestSession } from "@/hooks/use-test-session";
 import { trackUmamiEvent, AnalyticsEvent } from "@/lib/umami";
-import { Button } from "@labas/ui/components/button";
+import { Button } from "@pram/ui/components/button";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { AttemptTestView } from "@/components/test/AttemptTestView";
 import { routeShell } from "@/lib/route-shell";

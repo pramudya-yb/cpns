@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { router, protectedProcedure, publicProcedure } from "../index";
-import { db } from "@labas/db";
+import { db } from "@pram/db";
 import {
   comboPackage,
   comboSection,
@@ -12,7 +12,7 @@ import {
   examType,
   sectionType,
   user,
-} from "@labas/db";
+} from "@pram/db";
 import { paginationSchema, paginateDefaults } from "../lib/pagination";
 import { assertOwnership } from "../lib/ownership";
 import { buildVisibilityCondition } from "../lib/visibility";

@@ -22,14 +22,14 @@ function createTransports() {
   if (isProduction) {
     transports.push(
       new winston.transports.File({
-        filename: "logs/labas-error.log",
+        filename: "logs/pram-error.log",
         level: "error",
         format: combine(timestamp(), errors({ stack: true }), json()),
         maxsize: 10 * 1024 * 1024,
         maxFiles: 14,
       }),
       new winston.transports.File({
-        filename: "logs/labas-combined.log",
+        filename: "logs/pram-combined.log",
         format: combine(timestamp(), errors({ stack: true }), json()),
         maxsize: 10 * 1024 * 1024,
         maxFiles: 7,
@@ -50,7 +50,7 @@ function createTransports() {
 
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL ?? "info",
-  defaultMeta: { service: "labas-api" },
+  defaultMeta: { service: "pram-api" },
   transports: createTransports(),
 });
 

@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@pram/ui/components/card";
 import { CommunityChannelList } from "@/components/CommunityChannelList";
 
 export function CommunityCard() {

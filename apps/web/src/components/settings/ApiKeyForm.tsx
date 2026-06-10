@@ -1,8 +1,8 @@
 import { type ApiKeyConfig } from "@/hooks/use-api-key";
-import { Button } from "@labas/ui/components/button";
-import { Input } from "@labas/ui/components/input";
-import { Label } from "@labas/ui/components/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
+import { Button } from "@pram/ui/components/button";
+import { Input } from "@pram/ui/components/input";
+import { Label } from "@pram/ui/components/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@pram/ui/components/card";
 import {
   Select,
   SelectContent,
@@ -10,7 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@labas/ui/components/select";
+} from "@pram/ui/components/select";
 
 type FormState = Omit<ApiKeyConfig, "id"> & { apiKey: string };
 

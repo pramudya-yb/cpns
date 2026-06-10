@@ -1,6 +1,6 @@
-# Deploying Labas on Coolify
+﻿# Deploying Pram on Coolify
 
-Labas is a Turborepo monorepo with separate **web** (Vite SPA) and **server** (Hono API) apps. Deploy them as **two Coolify applications** from the same Git repository, plus **PostgreSQL** and **Redis**.
+Pram is a Turborepo monorepo with separate **web** (Vite SPA) and **server** (Hono API) apps. Deploy them as **two Coolify applications** from the same Git repository, plus **PostgreSQL** and **Redis**.
 
 ```
 User → app.example.com (Web) → api.example.com (Server) → PostgreSQL + Redis
@@ -23,13 +23,13 @@ Both applications use the **repository root** as Base Directory. They differ onl
 
 1. In Coolify, create a **PostgreSQL** database service.
 2. Note the **internal hostname**, port, username, and password.
-3. Create a database named `labas` (or adjust `DATABASE_URL` accordingly).
+3. Create a database named `pram` (or adjust `DATABASE_URL` accordingly).
 4. Keep the service in the same Coolify project/network as the server app.
 
 Example internal connection (hostname varies by Coolify):
 
 ```env
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/labas
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/pram
 ```
 
 ---
@@ -81,7 +81,7 @@ Set these on the **server** application. All are validated at startup in `packag
 ```env
 NODE_ENV=production
 
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/labas
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/pram
 REDIS_URL=redis://YOUR_REDIS_HOST:6379
 
 BETTER_AUTH_SECRET=YOUR_RANDOM_SECRET_MIN_32_CHARS
@@ -94,7 +94,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=your-smtp-user
 SMTP_PASS=your-smtp-password
-SMTP_FROM=Labas <noreply@example.com>
+SMTP_FROM=Pram <noreply@example.com>
 ```
 
 Generate secrets:
@@ -139,7 +139,7 @@ To get the connection string:
 3. Paste into the **server app** env:
 
 ```env
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/labas
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@YOUR_POSTGRES_HOST:5432/pram
 ```
 
 Verify in the server app **Terminal**:
@@ -243,4 +243,4 @@ Rebuild the web app whenever the API URL changes.
 | [`deploy/server.nixpacks.toml`](./server.nixpacks.toml) | API server |
 | [`deploy/web.nixpacks.toml`](./web.nixpacks.toml) | Web app (Option B) |
 
-Both run `bun install` from the monorepo root so workspace packages (`@labas/*`) resolve correctly.
+Both run `bun install` from the monorepo root so workspace packages (`@pram/*`) resolve correctly.

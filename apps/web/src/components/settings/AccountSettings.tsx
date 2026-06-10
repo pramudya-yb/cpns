@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@labas/ui/components/card";
-import { Input } from "@labas/ui/components/input";
-import { Label } from "@labas/ui/components/label";
-import { Button } from "@labas/ui/components/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@pram/ui/components/card";
+import { Input } from "@pram/ui/components/input";
+import { Label } from "@pram/ui/components/label";
+import { Button } from "@pram/ui/components/button";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/error-utils";
 import { authClient } from "@/lib/auth-client";

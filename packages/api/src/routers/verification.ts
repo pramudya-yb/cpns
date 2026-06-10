@@ -1,5 +1,5 @@
-import { db } from "@labas/db";
-import { verification, user, account } from "@labas/db/schema/auth";
+import { db } from "@pram/db";
+import { verification, user, account } from "@pram/db/schema/auth";
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";

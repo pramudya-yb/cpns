@@ -8,10 +8,9 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@labas/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@pram/ui/components/card";
 import { formatLabel } from "@/lib/format";
 import { formatTime } from "@/lib/time";
-import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 export interface ExamTypeItem {
   examTypeId: string;

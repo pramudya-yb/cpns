@@ -1,5 +1,5 @@
 {
-  "name": "@labas/env",
+  "name": "@pram/env",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -14,7 +14,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@labas/config": "workspace:*",
+    "@pram/config": "workspace:*",
     "@types/bun": "catalog:",
     "typescript": "catalog:"
   }
