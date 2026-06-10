@@ -77,9 +77,7 @@ export function LandingPage() {
             </div>
           </div>
         </section>
-
-
-
+      </main>
 
     </div>
   );
