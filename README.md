@@ -1,4 +1,12 @@
-﻿<p align="center">
+---
+title: Pram API
+emoji: 🚀
+colorFrom: green
+colorTo: blue
+sdk: docker
+app_port: 3000
+---
+<p align="center">
   <img src="./apps/web/public/logo.png" alt="Pram" width="200" />
 </p>
 
