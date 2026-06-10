@@ -242,7 +242,7 @@ function RouteComponent() {
   if (!email) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-muted/30">
-        <img src="/logo.png" alt="Pram Logo" className="h-20 w-auto mb-8 absolute top-8" />
+        <img src="/logo.png" alt="Pram Logo" className="h-20 w-auto mb-8 absolute top-8 mix-blend-multiply" />
         <StepEmail onNext={setEmail} />
       </div>
     );
@@ -250,7 +250,7 @@ function RouteComponent() {
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-muted/30">
-      <img src="/logo.png" alt="Pram Logo" className="h-20 w-auto mb-8 absolute top-8" />
+      <img src="/logo.png" alt="Pram Logo" className="h-20 w-auto mb-8 absolute top-8 mix-blend-multiply" />
       <StepReset email={email} />
     </div>
   );

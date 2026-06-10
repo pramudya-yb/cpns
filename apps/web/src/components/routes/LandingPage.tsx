@@ -46,7 +46,7 @@ export function LandingPage() {
       {/* Navbar */}
       <nav className="w-full px-6 py-4 md:px-12 lg:px-16 flex items-center justify-between max-w-7xl mx-auto z-50 sticky top-0 bg-[var(--warm-cream)] border-b-2 border-[var(--oat-border)]">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Pram Logo" className="h-10 w-auto object-contain" />
+          <img src="/logo.png" alt="Pram Logo" className="h-10 w-auto object-contain mix-blend-multiply" />
           <span className="font-headline font-semibold text-2xl tracking-[-0.64px] text-[var(--clay-black)] hidden sm:block">Pram</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
