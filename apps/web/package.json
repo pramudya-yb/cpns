@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "git lfs pull && vite build",
+    "build": "vite build",
     "serve": "vite preview",
     "start:prod": "serve -s dist -l ${PORT:-3001}",
     "start": "vite",
