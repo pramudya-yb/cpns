@@ -1,4 +1,4 @@
-﻿import { Toaster } from "@pram/ui/components/sonner";
+import { Toaster } from "@pram/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
@@ -62,10 +62,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" as const },
         { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" },
       ],
-      scripts: [
-        ...(import.meta.env.PROD
-          ? [{ src: "https://umami-analytic.pram-app.vercel.app/script.js", defer: true, "data-website-id": "67a18412-12c8-44ef-9cd3-e04238d37e9a" }]
-          : []),
+
         {
           type: "application/ld+json",
           children: JSON.stringify({

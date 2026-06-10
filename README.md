@@ -1,4 +1,4 @@
-﻿---
+---
 title: Pram API
 emoji: 🚀
 colorFrom: green
@@ -278,12 +278,6 @@ Contributions are welcome! Before opening a PR:
 
 For AI-related changes, see the **AI Generation Context** section in `AGENTS.md` — adding a new question format touches schemas, prompts, attempt normalization, and frontend constants.
 
-## Support
-
-If you find Pram helpful and want to support its ongoing development, consider buying the creator a coffee! Your support helps cover API and hosting costs. ☕
-
-- **[Saweria](https://saweria.co/pram)** (Indonesian supporters)
-- **[Ko-fi](https://ko-fi.com/pram)** (International)
 
 ## License
 
