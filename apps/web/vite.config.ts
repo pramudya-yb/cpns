@@ -1,4 +1,4 @@
-import tailwindcss from "@tailwindcss/vite";
+﻿import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
@@ -29,7 +29,7 @@ export default defineConfig({
       transformIndexHtml(html) {
         return html.replace(
           "</head>",
-          '<script defer src="https://umami-analytic.rogasper.com/script.js" data-website-id="67a18412-12c8-44ef-9cd3-e04238d37e9a"></script></head>',
+          '<script defer src="https://umami-analytic.pram-app.vercel.app/script.js" data-website-id="67a18412-12c8-44ef-9cd3-e04238d37e9a"></script></head>',
         );
       },
       apply: "build",
@@ -53,3 +53,4 @@ export default defineConfig({
     }),
   ],
 });
+

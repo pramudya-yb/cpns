@@ -1,4 +1,4 @@
-import { trpcServer } from "@hono/trpc-server";
+﻿import { trpcServer } from "@hono/trpc-server";
 import { createContext } from "@pram/api/context";
 import { appRouter } from "@pram/api/routers/index";
 import { checkRateLimitAllowed } from "@pram/api/lib/rate-limit";
@@ -73,7 +73,7 @@ app.use(
 );
 
 app.get("/sitemap.xml", (c) => {
-  const baseUrl = "https://pram.rogasper.com";
+  const baseUrl = "https://pram-app.vercel.app";
   const urls = [
     { loc: `${baseUrl}/`, changefreq: "weekly", priority: "1.0" },
   ];
@@ -101,3 +101,4 @@ export default {
   hostname: "0.0.0.0",
   fetch: app.fetch,
 };
+

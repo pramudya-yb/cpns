@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@pram/ui/components/dialog";
+﻿import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@pram/ui/components/dialog";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 export function DonationModal({
@@ -28,7 +28,7 @@ export function DonationModal({
         </DialogHeader>
         <div className="flex flex-col gap-3 mt-6">
           <a
-            href="https://saweria.co/rogasper"
+            href="https://saweria.co/pram"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-[var(--radius-lg)] font-bold transition-all bg-[#F3B63A] text-black hover:brightness-95 clay-shadow clay-hover"
@@ -37,7 +37,7 @@ export function DonationModal({
             Support via Saweria
           </a>
           <a
-            href="https://ko-fi.com/rogasper"
+            href="https://ko-fi.com/pram"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-[var(--radius-lg)] font-bold transition-all bg-[#13C3FF] text-white hover:brightness-95 clay-shadow clay-hover"
@@ -56,3 +56,4 @@ export function DonationModal({
     </Dialog>
   );
 }
+

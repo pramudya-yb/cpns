@@ -1,4 +1,4 @@
----
+﻿---
 title: Pram API
 emoji: 🚀
 colorFrom: green
@@ -282,8 +282,8 @@ For AI-related changes, see the **AI Generation Context** section in `AGENTS.md`
 
 If you find Pram helpful and want to support its ongoing development, consider buying the creator a coffee! Your support helps cover API and hosting costs. ☕
 
-- **[Saweria](https://saweria.co/rogasper)** (Indonesian supporters)
-- **[Ko-fi](https://ko-fi.com/rogasper)** (International)
+- **[Saweria](https://saweria.co/pram)** (Indonesian supporters)
+- **[Ko-fi](https://ko-fi.com/pram)** (International)
 
 ## License
 
@@ -296,3 +296,4 @@ If you run a modified version as a network service, you must make the correspond
 <p align="center">
   Built with Bun, React, Hono, and tRPC.
 </p>
+

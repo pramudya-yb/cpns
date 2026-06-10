@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Build social preview images for Pram (Open Graph + Twitter).
  * Requires Bun >= 1.3.14 (Bun.Image API).
  *
@@ -53,7 +53,7 @@ async function main() {
   // Truecolor PNG — compatible with Meta/Twitter crawlers (no 8-bit palette).
   await base.png({ compressionLevel: 9, palette: false }).write(OPENGRAPH);
 
-  // JPEG for twitter:image — matches rogasper.com pattern, very reliable on X/Threads.
+  // JPEG for twitter:image — matches pram-app.vercel.app pattern, very reliable on X/Threads.
   await requireBunImage(OPENGRAPH)
     .jpeg({ quality: 88, mozjpeg: true })
     .write(TWITTER);
@@ -71,3 +71,4 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+

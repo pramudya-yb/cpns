@@ -1,4 +1,4 @@
-import { Toaster } from "@pram/ui/components/sonner";
+﻿import { Toaster } from "@pram/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
@@ -64,7 +64,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       ],
       scripts: [
         ...(import.meta.env.PROD
-          ? [{ src: "https://umami-analytic.rogasper.com/script.js", defer: true, "data-website-id": "67a18412-12c8-44ef-9cd3-e04238d37e9a" }]
+          ? [{ src: "https://umami-analytic.pram-app.vercel.app/script.js", defer: true, "data-website-id": "67a18412-12c8-44ef-9cd3-e04238d37e9a" }]
           : []),
         {
           type: "application/ld+json",
@@ -132,3 +132,4 @@ function RootComponent() {
     </>
   );
 }
+

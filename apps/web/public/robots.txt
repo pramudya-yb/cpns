@@ -1,3 +1,4 @@
 ﻿User-agent: *
 Allow: /
-Sitemap: https://pram.rogasper.com/sitemap.xml
+Sitemap: https://pram-app.vercel.app/sitemap.xml
+

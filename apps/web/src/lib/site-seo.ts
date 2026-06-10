@@ -1,7 +1,7 @@
-export const SITE_URL = "https://pram.rogasper.com";
+﻿export const SITE_URL = "https://pram-app.vercel.app";
 export const SITE_NAME = "Pram";
 
-/** Match rogasper.com: separate OG (PNG) + Twitter (JPEG) assets for crawler compatibility. */
+/** Match pram-app.vercel.app: separate OG (PNG) + Twitter (JPEG) assets for crawler compatibility. */
 export const OG_IMAGE_PATH = "/opengraph-image.png";
 export const TWITTER_IMAGE_PATH = "/twitter-image.jpg";
 /** @deprecated Use OG_IMAGE_PATH — kept for old links */
@@ -54,3 +54,4 @@ export function buildSocialMeta(input: SiteHeadInput = {}) {
     { name: "twitter:image:height", content: String(OG_IMAGE_HEIGHT) },
   ];
 }
+

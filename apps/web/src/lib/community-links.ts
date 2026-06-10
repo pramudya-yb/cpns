@@ -1,4 +1,4 @@
-export type CommunityPlatform = "whatsapp" | "discord";
+﻿export type CommunityPlatform = "whatsapp" | "discord";
 
 export type CommunityChannel = {
   id: string;
@@ -43,8 +43,8 @@ export const COMMUNITY_CHANNELS: CommunityChannel[] = [
   {
     id: "learning-whatsapp",
     platform: "whatsapp",
-    name: "Rogasper Learning",
-    description: "Berbagi tips, trik, dan berita terbaru dari Rogasper Learning.",
+    name: "pram Learning",
+    description: "Berbagi tips, trik, dan berita terbaru dari pram Learning.",
     href: "https://chat.whatsapp.com/IrQOUGB3jhR7WnOoilCill",
     icon: "school",
   },
@@ -70,3 +70,4 @@ export function getCommunitySections() {
     channels: COMMUNITY_CHANNELS.filter((c) => c.platform === platform),
   })).filter((section) => section.channels.length > 0);
 }
+
