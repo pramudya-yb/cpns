@@ -113,9 +113,9 @@ export function Sidebar() {
         }`}
       >
         <div className={`mb-8 ${collapsed ? "px-0 text-center" : "px-3"}`}>
-          <span className="mt-2 text-3xl font-black tracking-tight select-none text-[var(--warm-charcoal)]">
+          <Link to="/" className="mt-2 text-3xl font-black tracking-tight select-none text-[var(--warm-charcoal)] block hover:opacity-80 transition-opacity">
             pram
-          </span>
+          </Link>
           {!collapsed && (
             <p className="text-xs text-[var(--warm-charcoal)] uppercase tracking-widest font-semibold mt-1">
               Exam Prep Portal
