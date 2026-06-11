@@ -1,4 +1,4 @@
-﻿export const SITE_URL = "https://pram-app.vercel.app";
+export const SITE_URL = "https://pram-app.vercel.app";
 export const SITE_NAME = "Pram";
 
 /** Match pram-app.vercel.app: separate OG (PNG) + Twitter (JPEG) assets for crawler compatibility. */
@@ -14,7 +14,7 @@ export const OG_IMAGE_HEIGHT = 630;
 export const OG_IMAGE_ALT =
   "Pram — platform latihan ujian bahasa dengan AI Generator dan simulasi tes";
 
-export const DEFAULT_SITE_TITLE = "Pram — AI-Powered Exam Practice Platform";
+export const DEFAULT_SITE_TITLE = "Pram";
 export const DEFAULT_SITE_DESCRIPTION =
   "Generate AI-powered practice questions for JLPT, TOPIK, TOAFL, and more. Practice smarter with adaptive test preparation.";
 
