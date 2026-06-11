@@ -40,6 +40,10 @@ type SendOtpEmailProps = {
 };
 
 export async function sendOtpEmail({ to, otp, type }: SendOtpEmailProps) {
+  console.log(`\n======================================================`);
+  console.log(`[BYPASS EMAIL] Kode OTP untuk ${to} adalah: ${otp}`);
+  console.log(`======================================================\n`);
+
   if (!transporter) {
     console.warn(`[email] Skipping OTP email to ${to} — SMTP not configured.`);
     return;
@@ -48,7 +52,7 @@ export async function sendOtpEmail({ to, otp, type }: SendOtpEmailProps) {
   const subject = subjects[type] || "Kode Verifikasi Pram";
   const message = messages[type] || "Kode verifikasi Anda:";
 
-  await transporter.sendMail({
+  transporter.sendMail({
     from: env.SMTP_FROM,
     to,
     subject,
@@ -62,5 +66,7 @@ export async function sendOtpEmail({ to, otp, type }: SendOtpEmailProps) {
         <p style="color: #6b7280; font-size: 14px;">Kode berlaku selama 5 menit. Jangan bagikan kode ini kepada siapapun.</p>
       </div>
     `,
+  }).catch((err) => {
+    console.error("[email] Error sending email (background):", err.message);
   });
 }
